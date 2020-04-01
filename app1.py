@@ -1,33 +1,51 @@
 import dash
-#import dash_auth
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+import plotly.graph_objs as go
+import pandas as pd
 
-#USERNAME_PASSWORD_PAIRS = [
-#    ['JamesBond', '007'],['LouisArmstrong', 'satchmo']
-#]
+df = pd.read_csv('gapminderDataFiveYear.csv')
 
 app = dash.Dash()
-#auth = dash_auth.BasicAuth(app,USERNAME_PASSWORD_PAIRS)
 server = app.server
 
-app.layout = html.Div([
-    dcc.RangeSlider(
-        id='range-slider',
-        min=-5,
-        max=6,
-        marks={i:str(i) for i in range(-5, 7)},
-        value=[-3, 4]
-    ),
-    html.H1(id='product')  # this is the output
-], style={'width':'50%'})
+# We need to construct a dictionary of dropdown values for the years
+year_options = []
+for year in df['year'].unique():
+    year_options.append({'label':str(year),'value':year})
 
-@app.callback(
-    Output('product', 'children'),
-    [Input('range-slider', 'value')])
-def update_value(value_list):
-    return value_list[0]*value_list[1]
+app.layout = html.Div([
+    dcc.Graph(id='graph-with-slider'),
+    dcc.Dropdown(id='year-picker',options=year_options,value=df['year'].min())
+])
+
+@app.callback(Output('graph-with-slider', 'figure'),
+              [Input('year-picker', 'value')])
+
+def update_figure(selected_year):
+    filtered_df = df[df['year'] == selected_year]
+    traces = []
+    for continent_name in filtered_df['continent'].unique():
+        df_by_continent = filtered_df[filtered_df['continent'] == continent_name]
+        traces.append(go.Scatter(
+            x=df_by_continent['gdpPercap'],
+            y=df_by_continent['lifeExp'],
+            text=df_by_continent['country'],
+            mode='markers',
+            opacity=0.7,
+            marker={'size': 15},
+            name=continent_name
+        ))
+
+    return {
+        'data': traces,
+        'layout': go.Layout(
+            xaxis={'type': 'log', 'title': 'GDP Per Capita'},
+            yaxis={'title': 'Life Expectancy'},
+            hovermode='closest'
+        )
+    }
 
 if __name__ == '__main__':
     app.run_server()
