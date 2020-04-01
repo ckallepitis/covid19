@@ -1,15 +1,15 @@
 import dash
-import dash_auth
+#import dash_auth
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-USERNAME_PASSWORD_PAIRS = [
-    ['JamesBond', '007'],['LouisArmstrong', 'satchmo']
-]
+#USERNAME_PASSWORD_PAIRS = [
+#    ['JamesBond', '007'],['LouisArmstrong', 'satchmo']
+#]
 
 app = dash.Dash()
-auth = dash_auth.BasicAuth(app,USERNAME_PASSWORD_PAIRS)
+#auth = dash_auth.BasicAuth(app,USERNAME_PASSWORD_PAIRS)
 server = app.server
 
 app.layout = html.Div([
