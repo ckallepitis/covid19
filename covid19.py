@@ -55,7 +55,7 @@ df_norm_100case.columns = df_pivot_c_cumsum.columns
 
 df_norm_100case = df_norm_100case.dropna(how='all',axis = 1)
 
-y_cutoff = 6000000
+y_cutoff = 600000
 x_start = 100
 Double_1day = [x_start]
 Double_2days = [x_start]
@@ -65,27 +65,27 @@ Double_week = [x_start]
 for i in range(1,77):
     x = x_start * (2 ** i)
     if x > y_cutoff:
-        x = y_cutoff
+        x = None
         Double_1day.append(x)
     else: Double_1day.append(x)
     y = x_start * ((2 ** (1/2)) ** i)
     if y > y_cutoff:
-        y = y_cutoff
+        y = None
         Double_2days.append(y)
     else: Double_2days.append(y)
     z = x_start * ((2**(1/3)) ** i)
     if z > y_cutoff:
-        z = y_cutoff
+        z = None
         Double_3days.append(z)
     else: Double_3days.append(z)
     v = x_start * ((2**(1/4)) ** i)
     if v > y_cutoff:
-        v = y_cutoff
+        v = None
         Double_4days.append(v)
     else: Double_4days.append(v)
     w = x_start * ((2**(1/7)) ** i)
     if w > y_cutoff:
-        w = y_cutoff
+        w = None
         Double_week.append(w)
     else: Double_week.append(w)
 
@@ -122,22 +122,22 @@ Double_week = [x_start]
 for i in range(1,77):
     x = x_start * (2 ** i)
     if x > y_cutoff:
-        x = y_cutoff
+        x = None
         Double_1day.append(x)
     else: Double_1day.append(x)
     y = x_start * ((2 ** (1/2)) ** i)
     if y > y_cutoff:
-        y = y_cutoff
+        y = None
         Double_2days.append(y)
     else: Double_2days.append(y)
     z = x_start * ((2**(1/3)) ** i)
     if z > y_cutoff:
-        z = y_cutoff
+        z = None
         Double_3days.append(z)
     else: Double_3days.append(z)
     w = x_start * ((2**(1/7)) ** i)
     if w > y_cutoff:
-        w = y_cutoff
+        w = None
         Double_week.append(w)
     else: Double_week.append(w)
 
@@ -194,8 +194,6 @@ app.layout = html.Div([
                     html.P('Select Countries:'),
                     dcc.Dropdown(
                         id = 'Selected_Countries',
-                        options=[
-                        {'label':i,'value':i}for i in df_norm_100case.columns ],
                         multi=True )
                     ],
                     style={'margin-top': '10'}),
@@ -206,11 +204,13 @@ app.layout = html.Div([
                     dcc.RadioItems(
                         id = 'country_set',
                         options=[
-                            {'label': 'Strands', 'value': 'Strands'},
-                            {'label': 'Europe', 'value': 'Europe'},
+                            {'label': 'All', 'value': 'All'},
+                            {'label': 'Africa', 'value': 'Africa'},
                             {'label': 'Americas', 'value': 'Americas'},
                             {'label': 'Asia', 'value': 'Asia'},
-                            {'label': 'Oceania', 'value': 'Oceania'} ],
+                            {'label': 'Europe', 'value': 'Europe'},
+                            {'label': 'Oceania', 'value': 'Oceania'},
+                            {'label': 'Strands', 'value': 'Strands'} ],
                         value='Strands' ),
                     ],
                     style={'margin-top': '10'}),
@@ -262,25 +262,44 @@ app.layout = html.Div([
 
 ###############################################################################
 #### Country Selector
+@app.callback(Output('Selected_Countries', 'options'),
+             [Input('Data_to_show', 'value')])
+def callback_country_set(Data_to_show_value):
 
-@app.callback(
-    Output('Selected_Countries', 'value'),
-    [Input('country_set', 'value')])
+    if Data_to_show_value == 'cases':
+        list = [{'label':i,'value':i}for i in df_norm_100case.columns]
+        return list
+    elif Data_to_show_value == 'deaths':
+        list = [{'label':i,'value':i}for i in df_norm_10death.columns]
+        return list
+    elif Data_to_show_value == 'daily_deaths':
+        list = [{'label':i,'value':i}for i in df_norm_3death.columns]
+        return list
+
+@app.callback(Output('Selected_Countries', 'value'),
+             [Input('country_set', 'value')])
 def callback_country_set(country_set_value):
-    if country_set_value == 'Strands':
+
+    if country_set_value == 'All':
         list = ['Spain','Malaysia','Argentina','United_States_of_America']
         return list
-    elif country_set_value == 'Europe':
-        list = ['Spain','Italy','France','Germany','Cyprus']
+    elif country_set_value == 'Africa':
+        list = ['Brazil','Argentina','United_States_of_America']
         return list
     elif country_set_value == 'Americas':
-        list = ['Guatemala','Brazil','Argentina','United_States_of_America']
+        list = ['Brazil','Argentina','United_States_of_America']
         return list
     elif country_set_value == 'Asia':
         list = ['China','Malaysia','Japan','Iran']
         return list
+    elif country_set_value == 'Europe':
+        list = ['Spain','Italy','France','Germany','Cyprus']
+        return list
     elif country_set_value == 'Oceania':
         list = ['Australia','New_Zealand']
+        return list
+    elif country_set_value == 'Strands':
+        list = ['Argentina','Malaysia','Spain','United_States_of_America']
         return list
     return
 
@@ -295,13 +314,17 @@ def callback_country_set(country_set_value):
 def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
                                                             Data_to_show_value):
     if Data_to_show_value == 'cases':
-        data = df_norm_100case[Selected_Countries_value]
+        Columns = list(df_norm_100case.columns)
+        Countries = [c for c in Selected_Countries_value if c in Columns]
+
+        data = df_norm_100case[Countries]
         lines = Lines_c
         title = 'Comulative number of confirmed cases, by number of days since 100th case'
         x_title = 'Number of days since 100th case'
         y_title = 'Comulative number of cases'
-        range_x = [1,80]
-        range_y = [1,6]
+        range_x = [0,80]
+        range_y = [0,300000]
+        range_logy = [np.log(0),np.log(600000)]
 
         plot_data = []
         for column in data.columns:
@@ -324,13 +347,17 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
                            name=column) )
 
     elif Data_to_show_value == 'deaths':
-        data = df_norm_10death[Selected_Countries_value]
+        Columns = list(df_norm_10death.columns)
+        Countries = [c for c in Selected_Countries_value if c in Columns]
+
+        data = df_norm_10death[Countries]
         lines = Lines_d
         title = 'Comulative number of deaths, by number of days since 10th death'
         x_title = 'Number of days since 10th death'
         y_title = 'Comulative number of deaths'
-        range_x = [1,40]
-        range_y = [1,4.2]
+        range_x = [0,40]
+        range_y = [0,15000]
+        range_logy = [np.log(0),np.log(15000)]
 
         plot_data = []
         for column in data.columns:
@@ -353,12 +380,16 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
                            name=column) )
 
     elif Data_to_show_value == 'daily_deaths':
-        data = df_norm_3death[Selected_Countries_value]
+        Columns = list(df_norm_3death.columns)
+        Countries = [c for c in Selected_Countries_value if c in Columns]
+
+        data = df_norm_3death[Countries]
         title = 'Daily deaths'
         x_title = 'Number of days since 3 daily deaths first recorded'
         y_title = 'Number of daily deaths (7 day rolling average)'
-        range_x = [1,75]
-        range_y = [1,2000]
+        range_x = [0,75]
+        range_y = [0,3000]
+        range_logy = [np.log(0),np.log(3000)]
 
         plot_data = []
         for column in data.columns:
@@ -380,7 +411,7 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
                    'range': range_x
                    },
             yaxis={'title': y_title,
-                   'range': range_y,
+                   'range': range_logy if yaxis_scale_value == 'log' else range_y,
                    'type': 'log' if yaxis_scale_value == 'log' else 'linear'},
             hovermode='closest' )
            }
