@@ -57,43 +57,43 @@ df_norm_100case = df_norm_100case.dropna(how='all',axis = 1)
 
 y_cutoff = 600000
 x_start = 100
-Double_1day = [x_start]
-Double_2days = [x_start]
-Double_3days = [x_start]
-Double_4days = [x_start]
-Double_week = [x_start]
+every_1day = [x_start]
+every_2days = [x_start]
+every_3days = [x_start]
+every_4days = [x_start]
+every_week = [x_start]
 for i in range(1,77):
     x = x_start * (2 ** i)
     if x > y_cutoff:
         x = None
-        Double_1day.append(x)
-    else: Double_1day.append(x)
+        every_1day.append(x)
+    else: every_1day.append(x)
     y = x_start * ((2 ** (1/2)) ** i)
     if y > y_cutoff:
         y = None
-        Double_2days.append(y)
-    else: Double_2days.append(y)
+        every_2days.append(y)
+    else: every_2days.append(y)
     z = x_start * ((2**(1/3)) ** i)
     if z > y_cutoff:
         z = None
-        Double_3days.append(z)
-    else: Double_3days.append(z)
+        every_3days.append(z)
+    else: every_3days.append(z)
     v = x_start * ((2**(1/4)) ** i)
     if v > y_cutoff:
         v = None
-        Double_4days.append(v)
-    else: Double_4days.append(v)
+        every_4days.append(v)
+    else: every_4days.append(v)
     w = x_start * ((2**(1/7)) ** i)
     if w > y_cutoff:
         w = None
-        Double_week.append(w)
-    else: Double_week.append(w)
+        every_week.append(w)
+    else: every_week.append(w)
 
-Lines_c = pd.DataFrame(Double_1day,columns=['Double_1day'],dtype=np.float64)
-Lines_c['Double_2days'] = pd.DataFrame(Double_2days)
-Lines_c['Double_3days'] = pd.DataFrame(Double_3days)
-Lines_c['Double_4days'] = pd.DataFrame(Double_4days)
-Lines_c['Double_week'] = pd.DataFrame(Double_week)
+Lines_c = pd.DataFrame(every_1day,columns=['every 1 day'],dtype=np.float64)
+Lines_c['every 2 days'] = pd.DataFrame(every_2days)
+Lines_c['every 3 days'] = pd.DataFrame(every_3days)
+Lines_c['every 4 days'] = pd.DataFrame(every_4days)
+Lines_c['every week'] = pd.DataFrame(every_week)
 
 ###############################################################################
 ### Deaths
@@ -115,36 +115,36 @@ df_norm_10death = df_norm_10death.dropna(how='all',axis = 1)
 
 y_cutoff = 21000
 x_start = 10
-Double_1day = [x_start]
-Double_2days = [x_start]
-Double_3days = [x_start]
-Double_week = [x_start]
+every_1day = [x_start]
+every_2days = [x_start]
+every_3days = [x_start]
+every_week = [x_start]
 for i in range(1,77):
     x = x_start * (2 ** i)
     if x > y_cutoff:
         x = None
-        Double_1day.append(x)
-    else: Double_1day.append(x)
+        every_1day.append(x)
+    else: every_1day.append(x)
     y = x_start * ((2 ** (1/2)) ** i)
     if y > y_cutoff:
         y = None
-        Double_2days.append(y)
-    else: Double_2days.append(y)
+        every_2days.append(y)
+    else: every_2days.append(y)
     z = x_start * ((2**(1/3)) ** i)
     if z > y_cutoff:
         z = None
-        Double_3days.append(z)
-    else: Double_3days.append(z)
+        every_3days.append(z)
+    else: every_3days.append(z)
     w = x_start * ((2**(1/7)) ** i)
     if w > y_cutoff:
         w = None
-        Double_week.append(w)
-    else: Double_week.append(w)
+        every_week.append(w)
+    else: every_week.append(w)
 
-Lines_d = pd.DataFrame(Double_1day,columns=['Double_1day'],dtype=np.float64)
-Lines_d['Double_2days'] = pd.DataFrame(Double_2days)
-Lines_d['Double_3days'] = pd.DataFrame(Double_3days)
-Lines_d['Double_week'] = pd.DataFrame(Double_week)
+Lines_d = pd.DataFrame(every_1day,columns=['every 1 day'],dtype=np.float64)
+Lines_d['every 2 days'] = pd.DataFrame(every_2days)
+Lines_d['every 3 days'] = pd.DataFrame(every_3days)
+Lines_d['every week'] = pd.DataFrame(every_week)
 
 ###############################################################################
 ### Deaths - Daily
@@ -357,8 +357,7 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
             plot_data.append(
                 go.Scatter(x=list(data.index.values),
                            y=data[column],
-                           #text={'Country': column,
-                           #     'Confirmed cases': data[column].max()},
+                           hovertemplate = '%{y:.0f}<extra></extra>',
                            mode='lines+markers',
                            opacity=0.7,
                            marker={'size': 5,
@@ -370,12 +369,13 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
                                     y=list(data[column].dropna())[-1],
                                     xanchor='left', yanchor='middle',
                                     text=column,
-                                    font={'family':'Arial','size':10},
+                                    font={'family':'Arial','size':12},
                                     showarrow=False))
         for column in lines.columns:
             plot_data.append(
                 go.Scatter(x=list(lines.index.values),
                            y=lines[column],
+                           hovertemplate = 'Doubles',
                            mode='lines',
                            opacity=0.5,
                            line={'color': color_balck,
@@ -401,8 +401,7 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
             plot_data.append(
                 go.Scatter(x=list(data.index.values),
                            y=data[column],
-                           #text={'Country': column,
-                           #      'Confirmed cases': data[column].max()},
+                           hovertemplate = '%{y:.0f}<extra></extra>',
                            mode='lines+markers',
                            opacity=0.7,
                            marker={'size': 5,
@@ -414,12 +413,14 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
                                     y=list(data[column].dropna())[-1],
                                     xanchor='left', yanchor='middle',
                                     text=column,
-                                    font={'family':'Arial','size':10},
+                                    font={'family':'Arial','size':12},
                                     showarrow=False))
+
         for column in lines.columns:
             plot_data.append(
                 go.Scatter(x=list(lines.index.values),
                            y=lines[column],
+                           hovertemplate = 'Doubles',
                            mode='lines',
                            opacity=0.5,
                            line={'color': color_balck,
@@ -444,7 +445,7 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
             plot_data.append(
                 go.Scatter(x=list(data.index.values),
                            y=data[column],
-                           #text=,
+                           hovertemplate = '%{y:.0f}<extra></extra>',
                            mode='lines+markers',
                            opacity=0.7,
                            marker={'size': 5,
@@ -456,7 +457,7 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
                                     y=list(data[column].dropna())[-1],
                                     xanchor='left', yanchor='middle',
                                     text=column,
-                                    font={'family':'Arial','size':10},
+                                    font={'family':'Arial','size':12},
                                     showarrow=False))
 
     if yaxis_scale_value == 'log':
