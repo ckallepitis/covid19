@@ -281,19 +281,42 @@ def callback_country_set(Data_to_show_value):
 def callback_country_set(country_set_value):
 
     if country_set_value == 'All':
-        list = ['Spain','Malaysia','Argentina','United_States_of_America']
+        list = df_norm_10death.columns
         return list
     elif country_set_value == 'Africa':
-        list = ['Brazil','Argentina','United_States_of_America']
+        list = ['Algeria', 'Burkina_Faso', 'Cameroon', 'Canada', 'Cote_dIvoire',
+          'Democratic_Republic_of_the_Congo', 'Egypt', 'Ghana', 'Kenya',
+          'Mauritius', 'Morocco', 'Nigeria', 'Senegal', 'South_Africa',
+          'Tunisia']
         return list
     elif country_set_value == 'Americas':
-        list = ['Brazil','Argentina','United_States_of_America']
+        list = ['Argentina', 'Bolivia', 'Brazil', 'Canada', 'Chile',
+            'Colombia', 'Costa_Rica', 'Cuba', 'Dominican_Republic',
+            'Ecuador', 'Honduras', 'Mexico', 'Panama', 'Peru',
+            'Puerto_Rico', 'Trinidad_and_Tobago', 'United_States_of_America',
+            'Uruguay',  'Venezuela']
         return list
     elif country_set_value == 'Asia':
-        list = ['China','Malaysia','Japan','Iran']
+        list = ['Afghanistan', 'Algeria', 'Armenia', 'Azerbaijan', 'Bahrain',
+        'Brunei_Darussalam', 'Cambodia',
+        'Cases_on_an_international_conveyance_Japan', 'China', 'India',
+        'Indonesia', 'Iran', 'Iraq', 'Israel', 'Japan', 'Jordan', 'Kazakhstan',
+        'Kuwait', 'Kyrgyzstan',  'Lebanon', 'Malaysia', 'Oman', 'Pakistan',
+        'Palestine', 'Philippines',  'Qatar', 'Russia','Saudi_Arabia',
+        'Singapore', 'South_Korea', 'Sri_Lanka', 'Taiwan', 'Thailand',
+        'Tunisia', 'Turkey', 'United_Arab_Emirates','Uzbekistan', 'Vietnam']
         return list
     elif country_set_value == 'Europe':
-        list = ['Spain','Italy','France','Germany','Cyprus']
+        list = ['Albania',  'Andorra', 'Austria', 'Belarus', 'Belgium',
+          'Bosnia_and_Herzegovina', 'Bulgaria',  'Croatia', 'Cyprus',
+          'Czech_Republic', 'Denmark', 'Estonia', 'Finland', 'France',
+          'Faroe_Islands','Germany', 'Greece', 'Guernsey', 'Hungary',
+          'Iceland', 'Ireland', 'Isle_of_Man', 'Italy', 'Jersey', 'Kosovo',
+          'Latvia', 'Lithuania', 'Luxembourg',  'Malta', 'Moldova',
+          'Montenegro',  'Netherlands', 'North_Macedonia', 'Norway', 'Poland',
+          'Portugal',  'Romania', 'Russia','San_Marino', 'Serbia', 'Slovakia',
+          'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine',
+          'United_Kingdom']
         return list
     elif country_set_value == 'Oceania':
         list = ['Australia','New_Zealand']
@@ -305,6 +328,8 @@ def callback_country_set(country_set_value):
 
 ###############################################################################
 #### Line Graph
+
+color_balck = 'rgb(67,67,67)'
 
 @app.callback(Output('Line_Graph', 'figure'),
               [Input('Selected_Countries', 'value'),
@@ -324,26 +349,37 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
         y_title = 'Comulative number of cases'
         range_x = [0,80]
         range_y = [0,300000]
-        range_logy = [np.log(0),np.log(600000)]
+        range_logy = [np.log10(0),np.log10(600000)]
 
         plot_data = []
+        annotations = []
         for column in data.columns:
             plot_data.append(
                 go.Scatter(x=list(data.index.values),
                            y=data[column],
-                           #text=,
+                           #text={'Country': column,
+                           #     'Confirmed cases': data[column].max()},
                            mode='lines+markers',
                            opacity=0.7,
                            marker={'size': 5,
                                    'opacity': 0.7,},
                            name=column) )
+
+            annotations.append(dict(xref='x',yref='y',
+                                    x=data[column].dropna().index[-1],
+                                    y=list(data[column].dropna())[-1],
+                                    xanchor='left', yanchor='middle',
+                                    text=column,
+                                    font={'family':'Arial','size':10},
+                                    showarrow=False))
         for column in lines.columns:
             plot_data.append(
                 go.Scatter(x=list(lines.index.values),
                            y=lines[column],
-                           #text=,
                            mode='lines',
                            opacity=0.5,
+                           line={'color': color_balck,
+                                 'dash':'dash'},
                            name=column) )
 
     elif Data_to_show_value == 'deaths':
@@ -357,26 +393,37 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
         y_title = 'Comulative number of deaths'
         range_x = [0,40]
         range_y = [0,15000]
-        range_logy = [np.log(0),np.log(15000)]
+        range_logy = [np.log10(0),np.log10(15000)]
 
         plot_data = []
+        annotations = []
         for column in data.columns:
             plot_data.append(
                 go.Scatter(x=list(data.index.values),
                            y=data[column],
-                           #text=,
+                           #text={'Country': column,
+                           #      'Confirmed cases': data[column].max()},
                            mode='lines+markers',
                            opacity=0.7,
                            marker={'size': 5,
                                    'opacity': 0.7,},
                            name=column) )
+
+            annotations.append(dict(xref='x',yref='y',
+                                    x=data[column].dropna().index[-1],
+                                    y=list(data[column].dropna())[-1],
+                                    xanchor='left', yanchor='middle',
+                                    text=column,
+                                    font={'family':'Arial','size':10},
+                                    showarrow=False))
         for column in lines.columns:
             plot_data.append(
                 go.Scatter(x=list(lines.index.values),
                            y=lines[column],
-                           #text=,
                            mode='lines',
                            opacity=0.5,
+                           line={'color': color_balck,
+                                 'dash':'dash'},
                            name=column) )
 
     elif Data_to_show_value == 'daily_deaths':
@@ -388,10 +435,11 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
         x_title = 'Number of days since 3 daily deaths first recorded'
         y_title = 'Number of daily deaths (7 day rolling average)'
         range_x = [0,75]
-        range_y = [0,3000]
-        range_logy = [np.log(0),np.log(3000)]
+        range_y = [0,1500]
+        range_logy = [np.log10(0),np.log10(3000)]
 
         plot_data = []
+        annotations = []
         for column in data.columns:
             plot_data.append(
                 go.Scatter(x=list(data.index.values),
@@ -403,6 +451,20 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
                                    'opacity': 0.7,},
                            name=column) )
 
+            annotations.append(dict(xref='x',yref='y',
+                                    x=data[column].dropna().index[-1],
+                                    y=list(data[column].dropna())[-1],
+                                    xanchor='left', yanchor='middle',
+                                    text=column,
+                                    font={'family':'Arial','size':10},
+                                    showarrow=False))
+
+    if yaxis_scale_value == 'log':
+        for i in annotations:
+            i['y'] = np.log10(i['y'])
+    elif yaxis_scale_value == 'linear':
+        annotations = annotations
+
     return {
         'data': plot_data,
         'layout': go.Layout(
@@ -413,7 +475,9 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
             yaxis={'title': y_title,
                    'range': range_logy if yaxis_scale_value == 'log' else range_y,
                    'type': 'log' if yaxis_scale_value == 'log' else 'linear'},
-            hovermode='closest' )
+            hovermode='x',
+            annotations = annotations
+            )
            }
 
 if __name__ == '__main__':
