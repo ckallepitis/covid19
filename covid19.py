@@ -12,11 +12,13 @@ import requests
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 
 # Launch the application:
-app = dash.Dash()
+
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
 ###############################################################################
@@ -173,22 +175,18 @@ df_norm_3death = df_norm_3death.drop(['Algeria','Iraq','Philippines',
 ###                                                                         ###
 ###############################################################################
 
-app.layout = html.Div([
-    ###########################################################################
-    ### Title
-    html.Div([
-            html.H1('Coronavirus COVID-19 Dashboard',
-                    style={'font-family': 'Helvetica',
-                           "margin-top": "25", "margin-bottom": "0"}),
-            html.P('Data normalised to allow comparison between countries',
-                    style={'font-family': 'Helvetica',
-                           "font-size": "100%", "width": "50%"})
-             ]),
-
-    ###########################################################################
-    #### Selectors
-    html.Div([
-
+app.layout = dbc.Container([
+    dbc.Row([
+            ###########################################################################
+            ### Title
+            html.Div([
+                    html.H1('Coronavirus COVID-19 Dashboard',
+                            style={'font-family': 'Helvetica',
+                                   "margin-top": "25", "margin-bottom": "0"}),
+                    html.P('Data normalised to allow comparison between countries',
+                            style={'font-family': 'Helvetica',
+                                   "font-size": "100%", "width": "80%"})
+                     ]),
             ###################################################################
             ### Select Coutnries - Multi-Select Dropdown
             html.Div([
@@ -197,67 +195,64 @@ app.layout = html.Div([
                     dcc.RadioItems(
                         id = 'country_set',
                         options=[
-                            {'label': '!', 'value': '!'},
-                            {'label': 'All', 'value': 'All'},
-                            {'label': 'Africa', 'value': 'Africa'},
-                            {'label': 'Americas', 'value': 'Americas'},
-                            {'label': 'Asia', 'value': 'Asia'},
-                            {'label': 'Europe', 'value': 'Europe'},
-                            {'label': 'Oceania', 'value': 'Oceania'},
-                            {'label': 'Strands', 'value': 'Strands'} ],
-                        value='!' ),
-
-                        html.P(''),
+                            {'label': ' !', 'value': '!'},
+                            {'label': ' All', 'value': 'All'},
+                            {'label': ' Africa', 'value': 'Africa'},
+                            {'label': ' Americas', 'value': 'Americas'},
+                            {'label': ' Asia', 'value': 'Asia'},
+                            {'label': ' Europe', 'value': 'Europe'},
+                            {'label': ' Oceania', 'value': 'Oceania'},
+                            {'label': ' Strands', 'value': 'Strands'} ],
+                        value='!',
+                        labelStyle={'display': 'inline-block','margin': '5px'}),
 
                     dcc.Dropdown(
                         id = 'Selected_Countries',
-                        multi=True )
+                        multi=True ),
                     ],
                     style={'font-family': 'Helvetica','margin-top': '10'}),
+            ],align="center"),
 
-            ###################################################################
-            #### Y axis scale - Radio Item
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.FormGroup([
+                        dbc.Label("Y axis scale:"),
+                        dcc.RadioItems(id = 'yaxis_scale',
+                                       options=[{'label': ' Linear', 'value': 'lin'},
+                                                {'label': ' Logarithmic', 'value': 'log'} ],
+                                       value='log' ),
+                              ]),
+                dbc.FormGroup([
+                        dbc.Label("Cases:"),
+                        dcc.RadioItems(id = 'Data_to_show',
+                                       options=[
+                                {'label': ' Confirmed', 'value': 'cases'},
+                                {'label': ' Deaths', 'value': 'deaths'},
+                                {'label': ' Daily Deaths', 'value': 'daily_deaths'}],
+                                       value='cases' ),
+                              ])
+                     ],body=True)
+                ]),
+        dbc.Col(
             html.Div([
-                    html.P('Y axis scale:'),
-                    dcc.RadioItems(
-                        id = 'yaxis_scale',
-                        options=[
-                            {'label': 'Linear', 'value': 'lin'},
-                            {'label': 'Log', 'value': 'log'} ],
-                        value='log' )
-                    ],
-                    style={'font-family': 'Helvetica','margin-top': '10'}),
+                ###################################################################
+                #### Line Graph
+                dcc.Graph(id="Line_Graph",
+                          hoverData={'points': [{'customdata': 'Japan'}]}),
+                     ])
+               )
+            ],align="center"),
 
-            ###################################################################
-            #### Cases/Deaths - Radio Item
-            html.Div([
-                    html.P('Cases:'),
-                    dcc.RadioItems(
-                        id = 'Data_to_show',
-                        options=[
-                            {'label': 'Confirmed', 'value': 'cases'},
-                            {'label': 'Deaths', 'value': 'deaths'},
-                            {'label': 'Daily Deaths', 'value': 'daily_deaths'}],
-                        value='cases' )
-                    ],
-                    style={'font-family': 'Helvetica','margin-top': '10'})
-            ]),
-
-    ###########################################################################
-    #### Graphs
-    html.Div([
-            ###################################################################
-            #### Line Graph
-            dcc.Graph(id="Line_Graph",
-                      hoverData={'points': [{'customdata': 'Japan'}]}),
-            ]),
-    html.Div([
+    dbc.Row([
+        html.Div([
            html.P('Source: European Centre for Disease Prevention and Control'),
            html.P('data updates every day at 23:59 CET',
                     style={'font-size': '80%'})
             ],style={'font-family': 'Helvetica','font-size': '80%',
                                                             'margin-top': '10'})
-])
+            ],align="center")
+        ])
 
 ###############################################################################
 ###                                                                         ###
@@ -523,7 +518,7 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
         'data': plot_data,
         'layout': go.Layout(
             title = title,
-            width = 1000,
+            width = 900,
             height = 500,
             xaxis={'title': x_title,
                    'range': range_x
