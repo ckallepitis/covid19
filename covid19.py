@@ -249,9 +249,14 @@ app.layout = html.Div([
             ###################################################################
             #### Line Graph
             dcc.Graph(id="Line_Graph",
-                      hoverData={'points': [{'customdata': 'Japan'}]})
-
+                      hoverData={'points': [{'customdata': 'Japan'}]}),
             ]),
+    html.Div([
+           html.P('Source: European Centre for Disease Prevention and Control'),
+           html.P('data updates every day at 23:59 CET',
+                    style={'font-size': '80%'})
+            ],style={'font-family': 'Helvetica','font-size': '80%',
+                                                            'margin-top': '10'})
 ])
 
 ###############################################################################
