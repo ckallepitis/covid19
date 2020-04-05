@@ -182,28 +182,22 @@ app.layout = html.Div([
                            "margin-top": "25", "margin-bottom": "0"}),
             html.P('Data normalised to allow comparison between countries',
                     style={'font-family': 'Helvetica',
-                           "font-size": "120%", "width": "80%"})
+                           "font-size": "100%", "width": "50%"})
              ]),
 
     ###########################################################################
     #### Selectors
     html.Div([
+
             ###################################################################
             ### Select Coutnries - Multi-Select Dropdown
             html.Div([
                     html.P('Select Countries:'),
-                    dcc.Dropdown(
-                        id = 'Selected_Countries',
-                        multi=True )
-                    ],
-                    style={'margin-top': '10'}),
 
-            ###################################################################
-            #### Country Sets - Radio Item
-            html.Div([
                     dcc.RadioItems(
                         id = 'country_set',
                         options=[
+                            {'label': '!', 'value': '!'},
                             {'label': 'All', 'value': 'All'},
                             {'label': 'Africa', 'value': 'Africa'},
                             {'label': 'Americas', 'value': 'Americas'},
@@ -211,9 +205,15 @@ app.layout = html.Div([
                             {'label': 'Europe', 'value': 'Europe'},
                             {'label': 'Oceania', 'value': 'Oceania'},
                             {'label': 'Strands', 'value': 'Strands'} ],
-                        value='Strands' ),
+                        value='!' ),
+
+                        html.P(''),
+
+                    dcc.Dropdown(
+                        id = 'Selected_Countries',
+                        multi=True )
                     ],
-                    style={'margin-top': '10'}),
+                    style={'font-family': 'Helvetica','margin-top': '10'}),
 
             ###################################################################
             #### Y axis scale - Radio Item
@@ -226,21 +226,21 @@ app.layout = html.Div([
                             {'label': 'Log', 'value': 'log'} ],
                         value='log' )
                     ],
-                    style={'margin-top': '10'}),
+                    style={'font-family': 'Helvetica','margin-top': '10'}),
 
             ###################################################################
             #### Cases/Deaths - Radio Item
             html.Div([
-                    html.P('Data to show:'),
+                    html.P('Cases:'),
                     dcc.RadioItems(
                         id = 'Data_to_show',
                         options=[
-                            {'label': 'Confirmed Cases', 'value': 'cases'},
+                            {'label': 'Confirmed', 'value': 'cases'},
                             {'label': 'Deaths', 'value': 'deaths'},
                             {'label': 'Daily Deaths', 'value': 'daily_deaths'}],
                         value='cases' )
                     ],
-                    style={'margin-top': '10'})
+                    style={'font-family': 'Helvetica','margin-top': '10'})
             ]),
 
     ###########################################################################
@@ -282,6 +282,10 @@ def callback_country_set(country_set_value):
 
     if country_set_value == 'All':
         list = df_norm_10death.columns
+        return list
+    elif country_set_value == '!':
+        list = ['Spain', 'Italy', 'United_Kingdom', 'China', 'South_Korea',
+          'Japan', 'Taiwan','France','Germany','United_States_of_America']
         return list
     elif country_set_value == 'Africa':
         list = ['Algeria', 'Burkina_Faso', 'Cameroon', 'Canada', 'Cote_dIvoire',
@@ -329,6 +333,26 @@ def callback_country_set(country_set_value):
 ###############################################################################
 #### Line Graph
 
+colours = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3',
+'#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96',
+'#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52',
+'#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692',
+'#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA',
+'#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA',
+'#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880',
+'#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A',
+'#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B',
+'#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF',
+'#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3',
+'#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96',
+'#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52',
+'#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692',
+'#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA',
+'#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA',
+'#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880',
+'#FF97FF', '#FECB52', '#636EFA', '#EF553B']
+
+# Reference line color
 color_balck = 'rgb(67,67,67)'
 
 @app.callback(Output('Line_Graph', 'figure'),
@@ -348,21 +372,29 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
         x_title = 'Number of days since 100th case'
         y_title = 'Comulative number of cases'
         range_x = [0,80]
-        range_y = [0,300000]
-        range_logy = [np.log10(0),np.log10(600000)]
+        range_y = [90,400000]
+        range_logy = [np.log10(90),np.log10(1e6)]
 
         plot_data = []
         annotations = []
-        for column in data.columns:
+        for i, column in enumerate(data.columns):
             plot_data.append(
                 go.Scatter(x=list(data.index.values),
                            y=data[column],
-                           hovertemplate = '%{y:.0f}<extra></extra>',
-                           mode='lines+markers',
-                           opacity=0.7,
-                           marker={'size': 5,
-                                   'opacity': 0.7,},
+                           hovertemplate = '%{y:.0f}',
+                           mode='lines',
+                           line = {'color': colours[i]},
+                           opacity=0.6,
                            name=column) )
+
+            plot_data.append(
+                go.Scatter(x = [data[column].dropna().index[-1]],
+                           y = [list(data[column].dropna())[-1]],
+                           mode='markers',
+                           marker = {'color': colours[i],
+                                     'size' : 5},
+                           showlegend=False,
+                           opacity=0.6) )
 
             annotations.append(dict(xref='x',yref='y',
                                     x=data[column].dropna().index[-1],
@@ -391,22 +423,30 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
         title = 'Comulative number of deaths, by number of days since 10th death'
         x_title = 'Number of days since 10th death'
         y_title = 'Comulative number of deaths'
-        range_x = [0,40]
-        range_y = [0,15000]
-        range_logy = [np.log10(0),np.log10(15000)]
+        range_x = [0,80]
+        range_y = [9,2e4]
+        range_logy = [np.log10(9),np.log10(1e5)]
 
         plot_data = []
         annotations = []
-        for column in data.columns:
+        for i, column in enumerate(data.columns):
             plot_data.append(
                 go.Scatter(x=list(data.index.values),
                            y=data[column],
                            hovertemplate = '%{y:.0f}<extra></extra>',
-                           mode='lines+markers',
-                           opacity=0.7,
-                           marker={'size': 5,
-                                   'opacity': 0.7,},
+                           mode='lines',
+                           line = {'color': colours[i]},
+                           opacity=0.6,
                            name=column) )
+
+            plot_data.append(
+                go.Scatter(x = [data[column].dropna().index[-1]],
+                           y = [list(data[column].dropna())[-1]],
+                           mode='markers',
+                           marker = {'color': colours[i],
+                                     'size' : 5},
+                           showlegend=False,
+                           opacity=0.6) )
 
             annotations.append(dict(xref='x',yref='y',
                                     x=data[column].dropna().index[-1],
@@ -435,22 +475,30 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
         title = 'Daily deaths'
         x_title = 'Number of days since 3 daily deaths first recorded'
         y_title = 'Number of daily deaths (7 day rolling average)'
-        range_x = [0,75]
-        range_y = [0,1500]
-        range_logy = [np.log10(0),np.log10(3000)]
+        range_x = [0,80]
+        range_y = [1,1500]
+        range_logy = [np.log10(1),np.log10(3e3)]
 
         plot_data = []
         annotations = []
-        for column in data.columns:
+        for i, column in enumerate(data.columns):
             plot_data.append(
                 go.Scatter(x=list(data.index.values),
                            y=data[column],
                            hovertemplate = '%{y:.0f}<extra></extra>',
-                           mode='lines+markers',
-                           opacity=0.7,
-                           marker={'size': 5,
-                                   'opacity': 0.7,},
+                           mode='lines',
+                           line = {'color': colours[i]},
+                           opacity=0.6,
                            name=column) )
+
+            plot_data.append(
+                go.Scatter(x = [data[column].dropna().index[-1]],
+                           y = [list(data[column].dropna())[-1]],
+                           mode='markers',
+                           marker = {'color': colours[i],
+                                     'size' : 5},
+                           showlegend=False,
+                           opacity=0.6) )
 
             annotations.append(dict(xref='x',yref='y',
                                     x=data[column].dropna().index[-1],
@@ -470,6 +518,8 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
         'data': plot_data,
         'layout': go.Layout(
             title = title,
+            width = 1000,
+            height = 500,
             xaxis={'title': x_title,
                    'range': range_x
                    },
