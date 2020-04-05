@@ -55,7 +55,7 @@ df_norm_100case.columns = df_pivot_c_cumsum.columns
 
 df_norm_100case = df_norm_100case.dropna(how='all',axis = 1)
 
-y_cutoff = 600000
+y_cutoff = 700000
 x_start = 100
 every_1day = [x_start]
 every_2days = [x_start]
@@ -113,7 +113,7 @@ df_norm_10death.columns = df_pivot_d_cumsum.columns
 
 df_norm_10death = df_norm_10death.dropna(how='all',axis = 1)
 
-y_cutoff = 21000
+y_cutoff = 50000
 x_start = 10
 every_1day = [x_start]
 every_2days = [x_start]
