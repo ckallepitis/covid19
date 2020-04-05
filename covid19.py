@@ -15,6 +15,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
+import plotly.express as px
 
 # Launch the application:
 
@@ -30,7 +31,7 @@ server = app.server
 ###############################################################################
 ### Load Covid19 data
 
-url = "https://opendata.ecdc.europa.eu/covid19/casedistribution/csv"
+url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'
 s = requests.get(url).content
 df = pd.read_csv(io.StringIO(s.decode('utf-8')))
 df.sort_values(['countryterritoryCode',
@@ -170,6 +171,73 @@ df_norm_3death = df_norm_3death.drop(['Algeria','Iraq','Philippines',
                                       'San_Marino','Slovenia'],axis=1)
 
 ###############################################################################
+### Geo-plot
+
+df_geo = df[df.year != 2019].drop(['day','year','month','geoId'],axis=1)
+df_geo = df_geo[df_geo.countriesAndTerritories != 'Cases_on_an_international_conveyance_Japan'].reset_index(drop=True)
+df_geo.columns = ['day','cases','deaths','country','iso_alpha']
+df_geo['continent'] = 0
+df_geo['day'] = pd.to_datetime(df_geo['day'], format = '%Y/%m/%d').dt.dayofyear
+df_geo = df_geo.sort_values(['day','country']).reset_index(drop = True)
+df_geo['cases'] = df_geo[['country', 'day','cases']].groupby(['country', 'day']).sum()\
+                                                    .groupby(level=0).cumsum().reset_index()\
+                                                    .sort_values(['day','country'])\
+                                                    .reset_index(drop = True).cases
+df_geo['deaths'] = df_geo[['country', 'day','deaths']].groupby(['country', 'day']).sum()\
+                                                    .groupby(level=0).cumsum().reset_index()\
+                                                    .sort_values(['day','country'])\
+                                                    .reset_index(drop = True).deaths
+
+Africa = ['Algeria','Mauritania', 'Burundi','Malawi', 'Guinea', 'Guinea_Bissau', 'Gambia', 'Djibouti',  'Gabon', 'Benin', 'Burkina_Faso', 'Liberia', 'Libya','Cameroon', 'Canada', 'Cote_dIvoire','Uganda', 'Namibia',
+          'Central_African_Republic', 'Chad', 'Congo','Togo', 'Somalia','Sudan', 'Sierra_Leone',
+          'Democratic_Republic_of_the_Congo', 'Egypt', 'Ghana', 'Kenya','Botswana','Mali',
+          'Mauritius', 'Morocco', 'Nigeria', 'Senegal', 'South_Africa', 'Zambia', 'Zimbabwe',
+          'Tunisia','Angola','United_Republic_of_Tanzania','Rwanda','Cape_Verde','Equatorial_Guinea',
+          'Eritrea', 'Eswatini', 'Ethiopia','Madagascar','Mozambique','Niger','Seychelles']
+
+Americas = ['Argentina','Montserrat', 'Maldives',  'Guyana', 'Haiti','British_Virgin_Islands',  'Bonaire, Saint Eustatius and Saba', 'Nicaragua','Bolivia', 'Sint_Maarten','Saint_Lucia', 'Saint_Vincent_and_the_Grenadines',
+            'Brazil', 'Canada', 'Chile','Barbados', 'Belize','Bermuda','Paraguay','Greenland',
+            'Colombia', 'Costa_Rica', 'Cuba', 'Dominican_Republic','Turks_and_Caicos_islands',
+            'Ecuador', 'Honduras', 'Mexico', 'Panama', 'Peru','Suriname', 'United_States_Virgin_Islands',
+            'Puerto_Rico', 'Trinidad_and_Tobago', 'United_States_of_America','Jamaica','Saint_Barthelemy', 'Saint_Kitts_and_Nevis',
+            'Uruguay',  'Venezuela','Anguilla', 'Antigua_and_Barbuda', 'Aruba', 'Bahamas',
+           'Guatemala','Grenada',  'Cayman_Islands','Curaçao', 'Dominica', 'El_Salvador','Falkland_Islands_(Malvinas)']
+
+Asia = ['Afghanistan', 'Algeria', 'Armenia', 'Azerbaijan', 'Bahrain','Timor_Leste', 'Guam',
+        'Brunei_Darussalam', 'Cambodia','Bangladesh','Bhutan','Syria', 'Nepal','Laos',
+        'Cases_on_an_international_conveyance_Japan', 'China', 'India','Mongolia','Myanmar',
+        'Indonesia', 'Iran', 'Iraq', 'Israel', 'Japan', 'Jordan', 'Kazakhstan',
+        'Kuwait', 'Kyrgyzstan',  'Lebanon', 'Malaysia', 'Oman', 'Pakistan',
+        'Palestine', 'Philippines',  'Qatar', 'Russia','Saudi_Arabia',
+        'Singapore', 'South_Korea', 'Sri_Lanka', 'Taiwan', 'Thailand','Fiji', 'French_Polynesia',
+        'Tunisia', 'Turkey', 'United_Arab_Emirates','Uzbekistan', 'Vietnam']
+
+Europe = ['Albania', 'Holy_See', 'Andorra', 'Austria', 'Belarus', 'Belgium','Monaco',
+          'Bosnia_and_Herzegovina', 'Bulgaria',  'Croatia', 'Cyprus',
+          'Czech_Republic', 'Denmark', 'Estonia', 'Finland', 'France','Liechtenstein',
+          'Faroe_Islands','Germany', 'Greece', 'Guernsey', 'Hungary',
+          'Iceland', 'Ireland', 'Isle_of_Man', 'Italy', 'Jersey', 'Kosovo',
+          'Latvia', 'Lithuania', 'Luxembourg',  'Malta', 'Moldova',
+          'Montenegro',  'Netherlands', 'North_Macedonia', 'Norway', 'Poland',
+          'Portugal',  'Romania', 'Russia','San_Marino', 'Serbia', 'Slovakia',
+          'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine',
+          'United_Kingdom','Georgia', 'Gibraltar']
+
+Oceania = ['Australia','New_Zealand','New_Caledonia','Northern_Mariana_Islands','Papua_New_Guinea']
+
+for i, country in enumerate(df_geo.country):
+    if country in Africa:
+        df_geo['continent'].iloc[i] = 'Africa'
+    elif country in Americas:
+        df_geo['continent'].iloc[i] = 'Americas'
+    elif country in Asia:
+        df_geo['continent'].iloc[i] = 'Asia'
+    elif country in Europe:
+        df_geo['continent'].iloc[i] = 'Europe'
+    elif country in Oceania:
+        df_geo['continent'].iloc[i] = 'Oceania'
+
+###############################################################################
 ###                                                                         ###
 ###                               Layout                                    ###
 ###                                                                         ###
@@ -182,11 +250,11 @@ app.layout = dbc.Container([
             html.Div([
                     html.H1('Coronavirus COVID-19 Dashboard',
                             style={'font-family': 'Helvetica',
-                                   "margin-top": "25", "margin-bottom": "0"}),
+                                   'margin-top': '25', 'margin-bottom': '0'}),
                     html.P('Data normalised to allow comparison between countries',
                             style={'font-family': 'Helvetica',
-                                   "font-size": "100%", "width": "80%"})
-                     ]),
+                                   'font-size': '100%', 'width': '80%'})
+                     ]),#Div
             ###################################################################
             ### Select Coutnries - Multi-Select Dropdown
             html.Div([
@@ -209,40 +277,63 @@ app.layout = dbc.Container([
                     dcc.Dropdown(
                         id = 'Selected_Countries',
                         multi=True ),
-                    ],
+                    ],#Div
                     style={'font-family': 'Helvetica','margin-top': '10'}),
-            ],align="center"),
+            ],align='center'),#Row
 
     dbc.Row([
         dbc.Col([
             dbc.Card([
                 dbc.FormGroup([
-                        dbc.Label("Y axis scale:"),
+                        dbc.Label('Metric:'),
                         dcc.RadioItems(id = 'yaxis_scale',
                                        options=[{'label': ' Linear', 'value': 'lin'},
                                                 {'label': ' Logarithmic', 'value': 'log'} ],
-                                       value='log' ),
-                              ]),
+                                       value='log' ),#RadioItems
+                              ]),#FormGroup
                 dbc.FormGroup([
-                        dbc.Label("Cases:"),
+                        dbc.Label('Cases:'),
                         dcc.RadioItems(id = 'Data_to_show',
                                        options=[
                                 {'label': ' Confirmed', 'value': 'cases'},
                                 {'label': ' Deaths', 'value': 'deaths'},
                                 {'label': ' Daily Deaths', 'value': 'daily_deaths'}],
-                                       value='cases' ),
-                              ])
-                     ],body=True)
-                ]),
-        dbc.Col(
+                                       value='cases' ),#RadioItems
+                              ]),#FormGroup
+                     ], body=True)#Card
+                ], md=2),#Col
+        dbc.Col([
             html.Div([
                 ###################################################################
                 #### Line Graph
-                dcc.Graph(id="Line_Graph",
+                dcc.Graph(id='Line_Graph',
                           hoverData={'points': [{'customdata': 'Japan'}]}),
-                     ])
-               )
-            ],align="center"),
+                     ]),#Div
+               ], md=9),#Col
+            ], align='center'),#Row
+
+
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.FormGroup([
+                    dbc.Label('Cases:'),
+                    dcc.RadioItems(id = 'Map_cases',
+                                   options=[
+                                      {'label': ' Confirmed', 'value': 'cases'},
+                                       {'label': ' Deaths', 'value': 'deaths'}],
+                                   value='cases' ),#RadioItems
+                ]),#FormGroup
+            ],body=True),#Card
+        ], md=2),#Col
+
+        dbc.Col([
+            html.Div([
+                dcc.Graph(id = 'Maps')
+                ],
+      style={'font-family': 'Helvetica','font-size': '80%','margin-top': '10'}),
+        ], md=9),#Col
+    ], align='center'),#Row
 
     dbc.Row([
         html.Div([
@@ -251,14 +342,34 @@ app.layout = dbc.Container([
                     style={'font-size': '80%'})
             ],style={'font-family': 'Helvetica','font-size': '80%',
                                                             'margin-top': '10'})
-            ],align="center")
-        ])
+            ],align='center'),#Row
+
+])#Container
 
 ###############################################################################
 ###                                                                         ###
 ###                         Callbacks & Functions                           ###
 ###                                                                         ###
 ###############################################################################
+
+###############################################################################
+#### Map Selector
+@app.callback(Output('Maps', 'figure'),
+             [Input('Map_cases', 'value')])
+def callback_Map_cases(Map_cases_value):
+
+    if Map_cases_value == 'cases':
+        fig = px.scatter_geo(df_geo, locations="iso_alpha", color="continent",
+                                     hover_name="country", size="cases",
+                                     animation_frame="day",
+                                     projection="natural earth")
+
+    elif Map_cases_value == 'deaths':
+        fig = px.scatter_geo(df_geo, locations="iso_alpha", color="continent",
+                                     hover_name="country", size="deaths",
+                                     animation_frame="day",
+                                     projection="natural earth")
+    return fig
 
 ###############################################################################
 #### Country Selector
@@ -433,7 +544,7 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
             plot_data.append(
                 go.Scatter(x=list(data.index.values),
                            y=data[column],
-                           hovertemplate = '%{y:.0f}<extra></extra>',
+                           hovertemplate = '%{y:.0f}',
                            mode='lines',
                            line = {'color': colours[i]},
                            opacity=0.6,
@@ -485,7 +596,7 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
             plot_data.append(
                 go.Scatter(x=list(data.index.values),
                            y=data[column],
-                           hovertemplate = '%{y:.0f}<extra></extra>',
+                           hovertemplate = '%{y:.0f}',
                            mode='lines',
                            line = {'color': colours[i]},
                            opacity=0.6,
