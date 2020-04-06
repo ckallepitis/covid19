@@ -438,7 +438,7 @@ def callback_country_set(country_set_value):
         return list
     elif country_set_value == '!':
         list = ['Spain', 'Italy', 'United_Kingdom', 'China', 'South_Korea',
-          'Japan', 'Taiwan','France','Germany','United_States_of_America']
+          'Japan', 'Taiwan', 'Germany', 'United_States_of_America']
         return list
     elif country_set_value == 'Africa':
         list = ['Algeria', 'Burkina_Faso', 'Cameroon', 'Canada', 'Cote_dIvoire',
@@ -471,7 +471,7 @@ def callback_country_set(country_set_value):
           'Iceland', 'Ireland', 'Isle_of_Man', 'Italy', 'Jersey', 'Kosovo',
           'Latvia', 'Lithuania', 'Luxembourg',  'Malta', 'Moldova',
           'Montenegro',  'Netherlands', 'North_Macedonia', 'Norway', 'Poland',
-          'Portugal',  'Romania', 'Russia','San_Marino', 'Serbia', 'Slovakia',
+          'Portugal',  'Romania', 'Russia', 'San_Marino', 'Serbia', 'Slovakia',
           'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine',
           'United_Kingdom']
         return list
