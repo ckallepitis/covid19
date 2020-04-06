@@ -261,6 +261,8 @@ for i, country in enumerate(df_geo.country):
 ###############################################################################
 
 app.layout = dbc.Container([
+###############################################################################
+### Row 1
     dbc.Row([
             ###################################################################
             ### Title
@@ -298,11 +300,16 @@ app.layout = dbc.Container([
                     ],#Div
                     style={'font-family': 'Helvetica','margin-top': '10'}),
             ],align='center'),#Row
-
+###############################################################################
+### Row 2
     dbc.Row([
+        #######################################################################
+        ### Col1
         dbc.Col([
             dbc.Card([
                 dbc.FormGroup([
+                        #######################################################
+                        #### Metric Selector
                         dbc.Label('Metric:'),
                         dcc.RadioItems(\
                            id = 'yaxis_scale',
@@ -311,6 +318,8 @@ app.layout = dbc.Container([
                            value='log' ),#RadioItems
                               ]),#FormGroup
                 dbc.FormGroup([
+                        #######################################################
+                        #### Data Selector
                         dbc.Label('Cases:'),
                         dcc.RadioItems(id = 'Data_to_show',
                                        options=[
@@ -321,6 +330,8 @@ app.layout = dbc.Container([
                               ]),#FormGroup
                      ], body=True)#Card
                 ], md=2),#Col
+        #######################################################################
+        ### Col2
         dbc.Col([
             html.Div([
                 ###############################################################
@@ -331,11 +342,16 @@ app.layout = dbc.Container([
                ], md=9),#Col
             ], align='center'),#Row
 
-
+###############################################################################
+### Row 3
     dbc.Row([
+        #######################################################################
+        ### Col1
         dbc.Col([
             dbc.Card([
                 dbc.FormGroup([
+                    ###########################################################
+                    #### Map Data Selector
                     dbc.Label('Cases:'),
                     dcc.RadioItems(id = 'Map_cases',
                                    options=[
@@ -345,17 +361,24 @@ app.layout = dbc.Container([
                 ]),#FormGroup
             ],body=True),#Card
         ], md=2),#Col
-
+        #######################################################################
+        ### Col2
         dbc.Col([
             html.Div([
+                ###############################################################
+                #### Map Graph
                 dcc.Graph(id = 'Maps')
                 ],
       style={'font-family': 'Helvetica','font-size': '80%','margin-top': '10'}),
         ], md=9),#Col
     ], align='center'),#Row
 
+###############################################################################
+### Row 4
     dbc.Row([
         html.Div([
+           ####################################################################
+           ### Epilogue
            html.P('Source: European Centre for Disease Prevention and Control'),
            html.P('data updates every day at 23:59 CET',
                     style={'font-size': '80%'})
