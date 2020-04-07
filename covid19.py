@@ -24,7 +24,7 @@ server = app.server
 
 ###############################################################################
 ###                                                                         ###
-###                           Load DataFrame                                ###
+###                       Data preparation - Worldwide                      ###
 ###                                                                         ###
 ###############################################################################
 
@@ -256,6 +256,246 @@ for i, country in enumerate(df_geo.country):
 
 ###############################################################################
 ###                                                                         ###
+###                       Data preparation - Spain                          ###
+###                                                                         ###
+###############################################################################
+
+###############################################################################
+### Load Covid19 data
+urls = "https://covid19.isciii.es/resources/serie_historica_acumulados.csv"
+sp = requests.get(urls).content
+dfs = pd.read_csv(io.StringIO(sp.decode('latin1')))
+df_loc = pd.DataFrame([
+    ('AN','Andalusia',-4.5000000, 37.6000000),
+    ('AR','Aragon',-1.0000000, 41.0000000),
+    ('AS','Asturias', -6.0000000, 43.3333333),
+    ('IB','Balearic Islands', 2.4334717, 39.2226789),
+    ('PV','Basque Country', -2.7500000, 43.0000000),
+    ('CN','Canary Islands', -15.5000000, 28.0000000),
+    ('CB','Cantabria', -4.0000000, 43.3333333),
+    ('CL','Castille and Leon', -4.2500000, 41.6666667),
+    ('CM','Castille-La Mancha', -3.0000000, 39.5000000),
+    ('CT','Catalonia', 1.8676758, 41.8204551),
+    ('EX','Extremadura', -6.0000000, 39.0000000),
+    ('GA','Galicia', -7.8662109, 42.7550796),
+    ('RI','La Rioja', -2.5000000, 42.2500000),
+    ('MD','Madrid', -3.6906338, 40.4252581),
+    ('MC','Murcia', -1.5000000, 38.0000000),
+    ('NC','Navarre', -1.6666667, 42.7500000),
+    ('VC','Valencia', -0.7500000, 39.5000000)],
+   columns=['region','region_name','long','lat'])
+
+dfs = dfs.iloc[:-2,:-1]
+dfs.columns = ['region','date','cases','hospitalised','icu','deaths','recovered']
+dfs.date = pd.to_datetime(dfs.date, format='%d/%m/%Y')
+dfs = dfs.sort_values(['region','date'])
+dfs = pd.merge(dfs, df_loc[['region','region_name']], how='inner', on='region')
+
+###############################################################################
+#### Line Graph
+
+coloursp = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3',
+'#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96',
+'#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF']
+
+###############################################################################
+### Cases
+
+###############################################################################
+### Confirmed
+
+dfs_pivot_c= dfs.pivot(index='date', columns='region_name',values='cases')
+
+dfs_norm_10case = []
+for column in dfs_pivot_c.columns:
+    dfs_norm_10case.append(dfs_pivot_c[column][dfs_pivot_c[column] >= 10].values)
+
+dfs_norm_10case = pd.DataFrame(dfs_norm_10case).T
+
+dfs_norm_10case.columns = dfs_pivot_c.columns
+
+dfs_norm_10case = dfs_norm_10case.dropna(how='all',axis = 1)
+
+y_cutoff = dfs_norm_10case.max().max() + dfs_norm_10case.max().max() * 0.2
+x_start = 10
+every_1day = [x_start]
+every_2days = [x_start]
+every_3days = [x_start]
+every_4days = [x_start]
+every_week = [x_start]
+for i in range(1,dfs_norm_10case.shape[0] + 10):
+    x = x_start * (2 ** i)
+    if x > y_cutoff:
+        x = None
+        every_1day.append(x)
+    else: every_1day.append(x)
+    y = x_start * ((2 ** (1/2)) ** i)
+    if y > y_cutoff:
+        y = None
+        every_2days.append(y)
+    else: every_2days.append(y)
+    z = x_start * ((2**(1/3)) ** i)
+    if z > y_cutoff:
+        z = None
+        every_3days.append(z)
+    else: every_3days.append(z)
+    v = x_start * ((2**(1/4)) ** i)
+    if v > y_cutoff:
+        v = None
+        every_4days.append(v)
+    else: every_4days.append(v)
+    w = x_start * ((2**(1/7)) ** i)
+    if w > y_cutoff:
+        w = None
+        every_week.append(w)
+    else: every_week.append(w)
+
+Lines_cs = pd.DataFrame(every_1day,columns=['every 1 day'],dtype=np.float64)
+Lines_cs['every 2 days'] = pd.DataFrame(every_2days)
+Lines_cs['every 3 days'] = pd.DataFrame(every_3days)
+Lines_cs['every 4 days'] = pd.DataFrame(every_4days)
+Lines_cs['every week'] = pd.DataFrame(every_week)
+
+###############################################################################
+### Deaths
+
+dfs_pivot_d = dfs.pivot(index='date', columns='region_name',values='deaths')
+
+dfs_norm_3death = []
+for column in dfs_pivot_d.columns:
+    dfs_norm_3death.append(dfs_pivot_d[column][dfs_pivot_d[column] >= 3].values)
+
+dfs_norm_3death = pd.DataFrame(dfs_norm_3death).T
+
+dfs_norm_3death.columns = dfs_pivot_d.columns
+
+dfs_norm_3death = dfs_norm_3death.dropna(how='all',axis = 1)
+
+y_cutoff = 6000
+x_start = 3
+every_1day = [x_start]
+every_2days = [x_start]
+every_3days = [x_start]
+every_week = [x_start]
+for i in range(1,dfs_norm_3death.shape[0]+10):
+    x = x_start * (2 ** i)
+    if x > y_cutoff:
+        x = None
+        every_1day.append(x)
+    else: every_1day.append(x)
+    y = x_start * ((2 ** (1/2)) ** i)
+    if y > y_cutoff:
+        y = None
+        every_2days.append(y)
+    else: every_2days.append(y)
+    z = x_start * ((2**(1/3)) ** i)
+    if z > y_cutoff:
+        z = None
+        every_3days.append(z)
+    else: every_3days.append(z)
+    w = x_start * ((2**(1/7)) ** i)
+    if w > y_cutoff:
+        w = None
+        every_week.append(w)
+    else: every_week.append(w)
+
+Lines_ds = pd.DataFrame(every_1day,columns=['every 1 day'],dtype=np.float64)
+Lines_ds['every 2 days'] = pd.DataFrame(every_2days)
+Lines_ds['every 3 days'] = pd.DataFrame(every_3days)
+Lines_ds['every week'] = pd.DataFrame(every_week)
+
+###############################################################################
+### Deaths - Daily
+
+dfs_pivot_d_daily = dfs_pivot_d.diff()
+dfs_pivot_d_daily.loc['2020-03-08'] = dfs_pivot_d.loc['2020-03-08']
+
+regions = dfs_pivot_d_daily.agg(max) > 3
+regions = (regions[regions == True].index.values)
+dfs_pivot_3death = dfs_pivot_d_daily[regions]
+
+dfs_norm_3death_roll = []
+for column in dfs_pivot_3death.columns:
+    temp = dfs_pivot_3death[column].reset_index(drop=True)
+    dfs_norm_3death_roll.append(dfs_pivot_3death[column].iloc[temp[temp > 3]\
+                                                             .index[0]:].values)
+
+dfs_norm_3death_roll = pd.DataFrame(dfs_norm_3death_roll).T
+dfs_norm_3death_roll.columns = dfs_pivot_3death.columns
+dfs_norm_3death_roll = dfs_norm_3death_roll.rolling(7).mean().iloc[6:]\
+                                                         .reset_index(drop=True)
+dfs_norm_3death_roll = dfs_norm_3death_roll.dropna(how='all',axis = 1)
+
+###############################################################################
+### Spain Map
+
+df_geos = pd.merge(dfs, df_loc.drop('region_name',axis=1),\
+                                             how='inner', on='region').fillna(0)
+datas = df_geos[df_geos.date == df_geos.date.unique()[-1]]
+
+fig_spain_map = go.Figure(go.Scattergeo(
+                                        lon = datas['long'],
+                                        lat = datas['lat'],
+                                        text = datas['region_name']+': '\
+                                                    +datas['cases'].astype(str),
+                                        mode = 'markers',
+                                        marker = dict(size = datas['cases']/40,
+                                                    color = coloursp,
+                                                    line_width=0.5,
+                                                    sizemode = 'area'),
+                                        )
+                           )
+
+fig_spain_map.add_trace(go.Scattergeo(
+                                        lon = datas['long'],
+                                        lat = datas['lat'],
+                                        text = datas['region'],
+                                        mode = 'text',
+                                        marker = dict(size = 0,
+                                                    color = coloursp,
+                                                    line_width=0.0,
+                                                    sizemode = 'area'),
+                                        ))
+
+fig_spain_map.update_layout(  title = 'Confirmed cases in Spain by region',
+                    width = 900,
+                    height = 500,
+                    title_x=0.5,
+                    showlegend=False
+                 )
+
+fig_spain_map.update_geos(fitbounds="locations")
+###############################################################################
+### Pie chart
+
+data_sun = datas[['region','cases','hospitalised',
+                  'icu','deaths','recovered']].copy()
+data_sun['active'] = pd.Series(data_sun.loc[:,'cases']\
+                                - ( data_sun.loc[:,'deaths']\
+                                + data_sun.loc[:,'recovered']))
+data_sun = data_sun.reset_index(drop=True)
+
+data_sun_total = data_sun[['region','cases']]
+data_sun_total = pd.melt(data_sun_total, id_vars=['region'],
+                                         value_vars=['cases'])
+
+data_sun_cases = pd.melt(data_sun, id_vars=['region'],
+                                   value_vars=['active','deaths','recovered',
+                                               'hospitalised','icu'])
+data_sun_cases = data_sun_cases.sort_values('region')
+
+labels = list(data_sun_total.region) + list(data_sun_cases.variable)
+parents = ['Spain']*len(data_sun_total.region) + list(data_sun_cases['region'])
+values= list(data_sun_total['value']) + list(data_sun_cases['value'])
+
+fig_pie_chart =go.Figure(go.Sunburst(labels = labels,
+                                     parents = parents,
+                                     values= values))
+
+fig_pie_chart.update_layout(margin = dict(t=0, l=0, r=0, b=0))
+
+###############################################################################
+###                                                                         ###
 ###                               Layout                                    ###
 ###                                                                         ###
 ###############################################################################
@@ -337,7 +577,8 @@ app.layout = dbc.Container([
                 ###############################################################
                 #### Line Graph
                 dcc.Graph(id='Line_Graph',
-                          hoverData={'points': [{'customdata': 'Japan'}]}),
+                          #hoverData={'points': [{'customdata': 'Japan'}]}
+                          ),
                      ]),#Div
                ], md=9),#Col
             ], align='center'),#Row
@@ -370,17 +611,117 @@ app.layout = dbc.Container([
                 dcc.Graph(id = 'Maps')
                 ],
       style={'font-family': 'Helvetica','font-size': '80%','margin-top': '10'}),
-        ], md=9),#Col
+        ], md=10),#Col
     ], align='center'),#Row
+
+###############################################################################
+###                                 Spain                                   ###
+###############################################################################
 
 ###############################################################################
 ### Row 4
     dbc.Row([
         html.Div([
            ####################################################################
+           ### Spain Title
+           html.Spacer(),html.Hr(),
+           html.H2('Spain',
+                   style={'font-family': 'Helvetica',
+                          'margin-top': '25', 'margin-bottom': '20'}),
+
+           ###################################################################
+           ### Select Regions - Multi-Select Dropdown
+
+           html.P('Select Region:'),
+           dcc.RadioItems(
+               id = 'region_set',
+               options=[
+                   {'label': ' MD,CT', 'value': 'MD,CT'},
+                   {'label': ' All', 'value': 'All'},],
+               value='All',
+               labelStyle={'display': 'inline-block','margin': '5px'}),
+           dcc.Dropdown(id = 'Selected_Regions', multi=True ,
+                        value = ['Madrid','Catalonia']),
+                  ],#Div
+                  style={'font-family': 'Helvetica','margin-top': '10'}),
+             ],align='center'),#Row
+
+###############################################################################
+### Row 5
+    dbc.Row([
+        #######################################################################
+        ### Col1
+        dbc.Col([
+            dbc.Card([
+                dbc.FormGroup([
+                        #######################################################
+                        #### Metric Selector
+                        dbc.Label('Metric:'),
+                        dcc.RadioItems(\
+                           id = 'yaxis_scale_s',
+                           options=[{'label': ' Linear', 'value': 'lin'},
+                                    {'label': ' Logarithmic', 'value': 'log'} ],
+                           value='log' ),#RadioItems
+                              ]),#FormGroup
+                dbc.FormGroup([
+                        #######################################################
+                        #### Data Selector
+                        dbc.Label('Cases:'),
+                        dcc.RadioItems(id = 'Data_to_show_s',
+                                       options=[
+                           {'label': ' Confirmed', 'value': 'cases'},
+                           {'label': ' Deaths', 'value': 'deaths'},
+                           {'label': ' Daily Deaths', 'value': 'daily_deaths'}],
+                                       value='cases' ),#RadioItems
+                              ]),#FormGroup
+                     ], body=True)#Card
+                ], md=2),#Col
+        #######################################################################
+        ### Col2
+        dbc.Col([
+            html.Div([
+                ###############################################################
+                #### Line Graph
+                dcc.Graph(id='Line_Graph_s'),
+                     ]),#Div
+               ], md=10),#Col
+            ], align='center'),#Row
+
+###############################################################################
+### Row 6
+    dbc.Row([
+        #######################################################################
+        ### Col1
+        dbc.Col([
+            html.Div([
+                ###############################################################
+                #### Pie Chart
+                dbc.Label('Click on regions for more info:'),
+                dcc.Graph(id = 'Pie_Chart',figure=fig_pie_chart),
+                ],
+      style={'font-family': 'Helvetica','margin-top':'10'}),
+
+        ], md=4),#Col
+        #######################################################################
+        ### Col2
+        dbc.Col([
+            html.Div([
+                ###############################################################
+                #### Map Graph
+                dcc.Graph(id = 'Spain_Map',figure=fig_spain_map)
+                ],
+      style={'font-family': 'Helvetica','margin-top': '10'}),
+        ], md=8),#Col
+    ], align='center'),#Row
+
+###############################################################################
+### Row 7
+    dbc.Row([
+        html.Div([
+           ####################################################################
            ### Epilogue
-           html.P('Source: European Centre for Disease Prevention and Control'),
-           html.P('data updates every day at 23:59 CET',
+           html.P('Source: European Centre for Disease Prevention and Control & Instituto de Salud Carlos III'),
+           html.P('data updated daily',
                     style={'font-size': '80%'})
             ],style={'font-family': 'Helvetica','font-size': '80%',
                                                             'margin-top': '10'})
@@ -414,10 +755,38 @@ def callback_Map_cases(Map_cases_value):
     return fig
 
 ###############################################################################
+#### Region Selector
+@app.callback(Output('Selected_Regions', 'options'),
+             [Input('Data_to_show_s', 'value')])
+def callback_Data_to_show_s(Data_to_show_s_value):
+
+    if Data_to_show_s_value == 'cases':
+        list = [{'label':i,'value':i} for i in dfs_norm_10case.columns]
+        return list
+    elif Data_to_show_s_value == 'deaths':
+        list = [{'label':i,'value':i} for i in dfs_norm_3death.columns]
+        return list
+    elif Data_to_show_s_value == 'daily_deaths':
+        list = [{'label':i,'value':i} for i in dfs_norm_3death_roll.columns]
+        return list
+
+@app.callback(Output('Selected_Regions', 'value'),
+             [Input('region_set', 'value')])
+def callback_region_set(region_set_value):
+
+    if region_set_value == 'All':
+        list = dfs_norm_10case.columns
+        return list
+    elif region_set_value == 'MD,CT':
+        list = ['Madrid','Catalonia']
+        return list
+    return
+
+###############################################################################
 #### Country Selector
 @app.callback(Output('Selected_Countries', 'options'),
              [Input('Data_to_show', 'value')])
-def callback_country_set(Data_to_show_value):
+def callback_Data_to_show(Data_to_show_value):
 
     if Data_to_show_value == 'cases':
         list = [{'label':i,'value':i}for i in df_norm_100case.columns]
@@ -434,7 +803,7 @@ def callback_country_set(Data_to_show_value):
 def callback_country_set(country_set_value):
 
     if country_set_value == 'All':
-        list = df_norm_10death.columns
+        list = df_norm_100case.columns
         return list
     elif country_set_value == '!':
         list = ['Spain', 'Italy', 'United_Kingdom', 'China', 'South_Korea',
@@ -513,8 +882,12 @@ color_balck = 'rgb(67,67,67)'
               Input('yaxis_scale', 'value'),
               Input('Data_to_show', 'value')])
 
-def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
-                                                            Data_to_show_value):
+def callback_Line_Graph(Selected_Countries_value,
+                        yaxis_scale_value,
+                        Data_to_show_value):
+
+    ###########################################################################
+    #### Confirmed
     if Data_to_show_value == 'cases':
         Columns = list(df_norm_100case.columns)
         Countries = [c for c in Selected_Countries_value if c in Columns]
@@ -569,6 +942,8 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
                                  'dash':'dash'},
                            name=column) )
 
+    ###########################################################################
+    #### Deaths
     elif Data_to_show_value == 'deaths':
         Columns = list(df_norm_10death.columns)
         Countries = [c for c in Selected_Countries_value if c in Columns]
@@ -624,6 +999,8 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
                                  'dash':'dash'},
                            name=column) )
 
+    ###########################################################################
+    #### Daily Deaths
     elif Data_to_show_value == 'daily_deaths':
         Columns = list(df_norm_3death.columns)
         Countries = [c for c in Selected_Countries_value if c in Columns]
@@ -688,6 +1065,198 @@ def callback_Line_Graph(Selected_Countries_value,yaxis_scale_value,
             annotations = annotations
             )
            }
+
+###############################################################################
+###                            Spain Graph                                  ###
+###############################################################################
+
+@app.callback(Output('Line_Graph_s', 'figure'),
+              [Input('Selected_Regions', 'value'),
+              Input('yaxis_scale_s', 'value'),
+              Input('Data_to_show_s', 'value')])
+
+def callback_Line_Graph(Selected_Regions_value,
+                        yaxis_scale_s_value,
+                        Data_to_show_s_value):
+
+    ###########################################################################
+    #### Confirmed
+    if Data_to_show_s_value == 'cases':
+
+        Columns = list(dfs_norm_10case.columns)
+        Regions = [c for c in Selected_Regions_value if c in Columns]
+
+        data = dfs_norm_10case[Regions]
+        lines = Lines_cs
+        title = 'Comulative number of confirmed cases, by number of days since 10th case'
+        x_title = 'Number of days since 10th case'
+        y_title = 'Comulative number of cases'
+
+        fig = go.Figure()
+
+        plot_data = []
+        annotations = []
+        for i, column in enumerate(data.columns):
+            plot_data.append(
+                go.Scatter(x=list(data.index.values),
+                           y=data[column],
+                           hovertemplate = '%{y:.0f}',
+                           mode='lines',
+                           line = {'color': coloursp[i]},
+                           opacity=0.6,
+                           name= column ))
+
+            plot_data.append(
+                go.Scatter(x = [data[column].dropna().index[-1]],
+                           y = [list(data[column].dropna())[-1]],
+                           mode='markers',
+                           marker = {'color': coloursp[i],
+                                     'size' : 5},
+                           showlegend=False,
+                           opacity=0.6,
+                           hoverinfo='skip',) )
+
+            annotations.append(dict(xref='x',yref='y',
+                                    x=data[column].dropna().index[-1],
+                                    y=list(data[column].dropna())[-1],
+                                    xanchor='left', yanchor='middle',
+                                    text=df_loc.set_index('region_name')\
+                                    .region.loc[column],
+                                    font={'family':'Arial','size':12},
+                                    showarrow=False))
+        for column in lines.columns:
+            plot_data.append(
+                go.Scatter(x=list(lines.index.values),
+                           y=lines[column],
+                           hovertemplate = 'Doubles',
+                           mode='lines',
+                           opacity=0.5,
+                           line={'color': color_balck,
+                                 'dash':'dash'},
+                           name=column) )
+
+    ###########################################################################
+    #### Deaths
+    elif Data_to_show_s_value == 'deaths':
+
+        Columns = list(dfs_norm_3death.columns)
+        Regions = [c for c in Selected_Regions_value if c in Columns]
+
+        data = dfs_norm_3death[Regions]
+        lines = Lines_ds
+        title = 'Comulative number of deaths, by number of days since 3rd death'
+        x_title = 'Number of days since 3rd death'
+        y_title = 'Comulative number of deaths'
+
+        fig = go.Figure()
+
+        plot_data = []
+        annotations = []
+        for i, column in enumerate(data.columns):
+            plot_data.append(
+                go.Scatter(x=list(data.index.values),
+                           y=data[column],
+                           hovertemplate = '%{y:.0f}',
+                           mode='lines',
+                           line = {'color': coloursp[i]},
+                           opacity=0.6,
+                           name=column) )
+
+            plot_data.append(
+                go.Scatter(x = [data[column].dropna().index[-1]],
+                           y = [list(data[column].dropna())[-1]],
+                           mode='markers',
+                           marker = {'color': coloursp[i],
+                                     'size' : 5},
+                           showlegend=False,
+                           opacity=0.6,
+                           hoverinfo='skip',) )
+
+            annotations.append(dict(xref='x',yref='y',
+                                    x=data[column].dropna().index[-1],
+                                    y=list(data[column].dropna())[-1],
+                                    xanchor='left', yanchor='middle',
+                                    text=df_loc.set_index('region_name')\
+                                    .region.loc[column],
+                                    font={'family':'Arial','size':12},
+                                    showarrow=False))
+        for column in lines.columns:
+            plot_data.append(
+                go.Scatter(x=list(lines.index.values),
+                           y=lines[column],
+                           hovertemplate = 'Doubles',
+                           mode='lines',
+                           opacity=0.5,
+                           line={'color': color_balck,
+                                 'dash':'dash'},
+                           name=column) )
+
+    ###########################################################################
+    #### Daily Deaths
+    elif Data_to_show_s_value == 'daily_deaths':
+
+        Columns = list(dfs_norm_3death_roll.columns)
+        Regions = [c for c in Selected_Regions_value if c in Columns]
+
+        data = dfs_norm_3death_roll[Regions]
+        title = 'Daily deaths'
+        x_title = 'Number of days since 3 daily deaths first recorded'
+        y_title = 'Number of daily deaths (7 day rolling average)'
+
+        fig = go.Figure()
+
+        plot_data = []
+        annotations = []
+        for i, column in enumerate(data.columns):
+            plot_data.append(
+                go.Scatter(x=list(data.index.values),
+                           y=data[column],
+                           hovertemplate = '%{y:.0f}',
+                           mode='lines',
+                           line = {'color': coloursp[i]},
+                           opacity=0.6,
+                           name=column) )
+
+            plot_data.append(
+                go.Scatter(x = [data[column].dropna().index[-1]],
+                           y = [list(data[column].dropna())[-1]],
+                           mode='markers',
+                           marker = {'color': coloursp[i],
+                                     'size' : 5},
+                           showlegend=False,
+                           opacity=0.6,
+                           hoverinfo='skip',) )
+
+            annotations.append(dict(xref='x',yref='y',
+                                    x=data[column].dropna().index[-1],
+                                    y=list(data[column].dropna())[-1],
+                                    xanchor='left', yanchor='middle',
+                                    text=df_loc.set_index('region_name')\
+                                    .region.loc[column],
+                                    font={'family':'Arial','size':12},
+                                    showarrow=False))
+
+    for i in range(0,plot_data.__len__()):
+        fig.add_trace(plot_data[i])
+
+    if yaxis_scale_s_value == 'log':
+        for i in annotations:
+            i['y'] = np.log10(i['y'])
+    elif yaxis_scale_s_value == 'linear':
+        annotations = annotations
+
+    fig.update_layout(  title = title,
+                    width = 900,
+                    height = 500,
+                    xaxis={'title': x_title,},
+                    yaxis={'title': y_title,
+                   'type': 'log' if yaxis_scale_s_value == 'log' else 'linear'},
+                    hovermode='x',
+                    annotations = annotations
+                 )
+    return fig
+
+###############################################################################
 
 if __name__ == '__main__':
     app.run_server(debug=True)
