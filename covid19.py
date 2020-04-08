@@ -285,8 +285,8 @@ df_loc = pd.DataFrame([
     ('VC','Valencia', -0.7500000, 39.5000000)],
    columns=['region','region_name','long','lat'])
 
-dfs = dfs.iloc[:-2,:-1]
-dfs.columns = ['region','date','cases','hospitalised','icu','deaths','recovered']
+dfs = dfs.iloc[:-2,:]
+dfs.columns = ['region','date','cases','hospitalised','ICU','deaths','recovered']
 dfs.date = pd.to_datetime(dfs.date, format='%d/%m/%Y')
 dfs = dfs.sort_values(['region','date'])
 dfs = pd.merge(dfs, df_loc[['region','region_name']], how='inner', on='region')
@@ -455,6 +455,7 @@ fig_spain_map.add_trace(go.Scattergeo(
                                                     color = coloursp,
                                                     line_width=0.0,
                                                     sizemode = 'area'),
+                                        hoverinfo='skip',
                                         ))
 
 fig_spain_map.update_layout(  title = 'Confirmed cases in Spain by region',
@@ -469,30 +470,54 @@ fig_spain_map.update_geos(fitbounds="locations")
 ### Pie chart
 
 data_sun = datas[['region','cases','hospitalised',
-                  'icu','deaths','recovered']].copy()
-data_sun['active'] = pd.Series(data_sun.loc[:,'cases']\
-                                - ( data_sun.loc[:,'deaths']\
-                                + data_sun.loc[:,'recovered']))
+                  'ICU','deaths','recovered']].copy()
+data_sun['active'] = pd.Series(data_sun.loc[:,'cases'] -\
+                              ( data_sun.loc[:,'deaths'] \
+                              + data_sun.loc[:,'recovered']))
+data_sun['home_isolation'] = pd.Series(data_sun.loc[:,'active']\
+                                       - ( data_sun.loc[:,'hospitalised']))
 data_sun = data_sun.reset_index(drop=True)
+data_sun['home_isolation'][7] = data_sun.loc[:,'home_isolation'][7] * (-1)
+data_sun['home_isolation'][14] = data_sun.loc[:,'home_isolation'][14] * (-1)
 
 data_sun_total = data_sun[['region','cases']]
 data_sun_total = pd.melt(data_sun_total, id_vars=['region'],
                                          value_vars=['cases'])
 
 data_sun_cases = pd.melt(data_sun, id_vars=['region'],
-                                   value_vars=['active','deaths','recovered',
-                                               'hospitalised','icu'])
+                                   value_vars=['active','deaths','recovered'])
 data_sun_cases = data_sun_cases.sort_values('region')
 
-labels = list(data_sun_total.region) + list(data_sun_cases.variable)
-parents = ['Spain']*len(data_sun_total.region) + list(data_sun_cases['region'])
-values= list(data_sun_total['value']) + list(data_sun_cases['value'])
+data_sun_active = pd.melt(data_sun, id_vars=['active'],
+                                    value_vars=['hospitalised','ICU',
+                                                'home_isolation'])
+data_sun_active['active'] = data_sun_active['active'].apply(str)
+data_sun_active = data_sun_active.sort_values('active')
+
+for r in df_loc.region:
+    data_sun_cases[data_sun_cases.region == r] = \
+    data_sun_cases[data_sun_cases.region == r]\
+    .replace('active','active ('+r+')')
+
+a = [ 'active ('+ i +')' for i in list(df_loc.region)] * 3
+a.sort()
+
+labels = list(data_sun_total.region) + list(data_sun_cases.variable) \
+                                     + list(data_sun_active.variable)
+parents = ['Spain'] * len(data_sun_total.region) \
+        + list(data_sun_cases['region']) + a
+values= list(data_sun_total['value']) + list(data_sun_cases['value']) \
+                                      + list(data_sun_active['value'])
 
 fig_pie_chart =go.Figure(go.Sunburst(labels = labels,
                                      parents = parents,
-                                     values= values))
+                                     values= values,
+                                     outsidetextfont = {"size": 20,
+                                                        "color": "#377eb8"},
+                                     insidetextfont = {"size": 10},))
 
-fig_pie_chart.update_layout(margin = dict(t=0, l=0, r=0, b=0))
+fig_pie_chart.update_layout(width = 500,height = 500,
+                            margin = dict(t=0, l=0, r=0, b=0))
 
 ###############################################################################
 ###                                                                         ###
@@ -701,17 +726,29 @@ app.layout = dbc.Container([
                 ],
       style={'font-family': 'Helvetica','margin-top':'10'}),
 
-        ], md=4),#Col
+        ], md=5),#Col
         #######################################################################
         ### Col2
         dbc.Col([
             html.Div([
-                ###############################################################
-                #### Map Graph
-                dcc.Graph(id = 'Spain_Map',figure=fig_spain_map)
+               ################################################################
+               #### Map Graph
+               dcc.Graph(id = 'Spain_Map',figure=fig_spain_map),
                 ],
-      style={'font-family': 'Helvetica','margin-top': '10'}),
-        ], md=8),#Col
+      style={'font-family': 'Helvetica','margin-top': '10',}),
+            #html.Div([
+            #   dcc.Slider(min=0,
+            #              max=len(df_geos.date.dt.date.astype(str).unique()),
+            #              marks={i:'{}'.format(date) for i,date in \
+            #              enumerate(df_geos.date.dt.date.astype(str).unique())},
+            #              value=len(df_geos.date.dt.date.astype(str).unique()),
+            #              updatemode='drag',
+            #              )
+            #         ],
+            #         style ={'font-family': 'Helvetica','margin-top': '10',
+            #                 #'writing-mode': 'vertical-lr',
+            #                 'text-orientation': 'sideways'})
+        ], md=6),#Col
     ], align='center'),#Row
 
 ###############################################################################
@@ -1252,7 +1289,8 @@ def callback_Line_Graph(Selected_Regions_value,
                     yaxis={'title': y_title,
                    'type': 'log' if yaxis_scale_s_value == 'log' else 'linear'},
                     hovermode='x',
-                    annotations = annotations
+                    annotations = annotations,
+                    template = 'plotly_white'
                  )
     return fig
 
