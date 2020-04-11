@@ -459,9 +459,10 @@ fig_spain_map.add_trace(go.Scattergeo(
                                         ))
 
 fig_spain_map.update_layout(  title = 'Confirmed cases in Spain by region',
-                    width = 900,
+                    width = 500,
                     height = 500,
                     title_x=0.5,
+                    margin = dict(t=0, l=0, r=0, b=0),
                     showlegend=False
                  )
 
@@ -563,7 +564,8 @@ app.layout = dbc.Container([
                         id = 'Selected_Countries',
                         multi=True ),
                     ],#Div
-                    style={'font-family': 'Helvetica','margin-top': '10'}),
+                    style={'font-family': 'Helvetica','margin-top': '10',
+                    'font-size': '100%', 'width': '100%'}),
             ],align='center'),#Row
 ###############################################################################
 ### Row 2
@@ -575,16 +577,20 @@ app.layout = dbc.Container([
                 dbc.FormGroup([
                         #######################################################
                         #### Metric Selector
+                        html.Div([
                         dbc.Label('Metric:'),
                         dcc.RadioItems(\
                            id = 'yaxis_scale',
                            options=[{'label': ' Linear', 'value': 'lin'},
                                     {'label': ' Logarithmic', 'value': 'log'} ],
                            value='log' ),#RadioItems
+                           ],style={'font-family': 'Helvetica','margin-top': '10',
+                                  'font-size': '100%', 'width': 150})#Div
                               ]),#FormGroup
                 dbc.FormGroup([
                         #######################################################
                         #### Data Selector
+                        html.Div([
                         dbc.Label('Cases:'),
                         dcc.RadioItems(id = 'Data_to_show',
                                        options=[
@@ -592,9 +598,12 @@ app.layout = dbc.Container([
                            {'label': ' Deaths', 'value': 'deaths'},
                            {'label': ' Daily Deaths', 'value': 'daily_deaths'}],
                                        value='cases' ),#RadioItems
+                                 ],
+                           style={'font-family': 'Helvetica','margin-top': '10',
+                                  'font-size': '100%', 'width': 150})#Div,
                               ]),#FormGroup
                      ], body=True)#Card
-                ], md=2),#Col
+                ], md=3),#Col
         #######################################################################
         ### Col2
         dbc.Col([
@@ -604,8 +613,9 @@ app.layout = dbc.Container([
                 dcc.Graph(id='Line_Graph',
                           #hoverData={'points': [{'customdata': 'Japan'}]}
                           ),
-                     ]),#Div
-               ], md=9),#Col
+                     ],style={'font-family': 'Helvetica','margin-top': '10',
+                            'font-size': '100%', 'width': '80%'}),#Div
+               ], md=8),#Col
             ], align='center'),#Row
 
 ###############################################################################
@@ -618,15 +628,19 @@ app.layout = dbc.Container([
                 dbc.FormGroup([
                     ###########################################################
                     #### Map Data Selector
+                    html.Div([
                     dbc.Label('Cases:'),
                     dcc.RadioItems(id = 'Map_cases',
                                    options=[
                                       {'label': ' Confirmed', 'value': 'cases'},
                                        {'label': ' Deaths', 'value': 'deaths'}],
                                    value='cases' ),#RadioItems
+                             ],style={'font-family': 'Helvetica',
+                                      'margin-top': '10',
+                                      'font-size': '100%', 'width': 150})#Div
                 ]),#FormGroup
             ],body=True),#Card
-        ], md=2),#Col
+        ], md=3),#Col
         #######################################################################
         ### Col2
         dbc.Col([
@@ -635,8 +649,11 @@ app.layout = dbc.Container([
                 #### Map Graph
                 dcc.Graph(id = 'Maps')
                 ],
-      style={'font-family': 'Helvetica','font-size': '80%','margin-top': '10'}),
-        ], md=10),#Col
+      style={'font-family': 'Helvetica','margin-top': '10',
+             'font-size': '100%',
+             #'width': '80%'
+             }),
+        ], md=8),#Col
     ], align='center'),#Row
 
 ###############################################################################
@@ -668,7 +685,8 @@ app.layout = dbc.Container([
            dcc.Dropdown(id = 'Selected_Regions', multi=True ,
                         value = ['Madrid','Catalonia']),
                   ],#Div
-                  style={'font-family': 'Helvetica','margin-top': '10'}),
+                  style={'font-family': 'Helvetica','margin-top': '10',
+                  'font-size': '100%', 'width': '100%'}),
              ],align='center'),#Row
 
 ###############################################################################
@@ -681,16 +699,21 @@ app.layout = dbc.Container([
                 dbc.FormGroup([
                         #######################################################
                         #### Metric Selector
+                        html.Div([
                         dbc.Label('Metric:'),
                         dcc.RadioItems(\
                            id = 'yaxis_scale_s',
                            options=[{'label': ' Linear', 'value': 'lin'},
                                     {'label': ' Logarithmic', 'value': 'log'} ],
                            value='log' ),#RadioItems
+                               ],style={'font-family': 'Helvetica',
+                                        'margin-top': '10',
+                                        'font-size': '100%', 'width': 150})#Div
                               ]),#FormGroup
                 dbc.FormGroup([
                         #######################################################
                         #### Data Selector
+                        html.Div([
                         dbc.Label('Cases:'),
                         dcc.RadioItems(id = 'Data_to_show_s',
                                        options=[
@@ -698,9 +721,12 @@ app.layout = dbc.Container([
                            {'label': ' Deaths', 'value': 'deaths'},
                            {'label': ' Daily Deaths', 'value': 'daily_deaths'}],
                                        value='cases' ),#RadioItems
+                                ],style={'font-family': 'Helvetica',
+                                         'margin-top': '10',
+                                         'font-size': '100%', 'width': 150})#Div
                               ]),#FormGroup
                      ], body=True)#Card
-                ], md=2),#Col
+                ], md=3),#Col
         #######################################################################
         ### Col2
         dbc.Col([
@@ -708,8 +734,8 @@ app.layout = dbc.Container([
                 ###############################################################
                 #### Line Graph
                 dcc.Graph(id='Line_Graph_s'),
-                     ]),#Div
-               ], md=10),#Col
+                     ],style= {'width': '80%'}),#Div
+               ], md=8),#Col
             ], align='center'),#Row
 
 ###############################################################################
@@ -724,9 +750,10 @@ app.layout = dbc.Container([
                 dbc.Label('Click on regions for more info:'),
                 dcc.Graph(id = 'Pie_Chart',figure=fig_pie_chart),
                 ],
-      style={'font-family': 'Helvetica','margin-top':'10'}),
+      style={'font-family': 'Helvetica','margin-top':'10',
+             'font-size': '100%', 'width': '10%'}),
 
-        ], md=5),#Col
+        ], md=6),#Col
         #######################################################################
         ### Col2
         dbc.Col([
@@ -735,7 +762,8 @@ app.layout = dbc.Container([
                #### Map Graph
                dcc.Graph(id = 'Spain_Map',figure=fig_spain_map),
                 ],
-      style={'font-family': 'Helvetica','margin-top': '10',}),
+      style={'font-family': 'Helvetica','margin-top': '10',
+             'font-size': '100%', 'width': '100%'}),
             #html.Div([
             #   dcc.Slider(min=0,
             #              max=len(df_geos.date.dt.date.astype(str).unique()),
@@ -1297,4 +1325,4 @@ def callback_Line_Graph(Selected_Regions_value,
 ###############################################################################
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server()
