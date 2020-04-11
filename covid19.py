@@ -301,9 +301,6 @@ coloursp = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3',
 ###############################################################################
 ### Cases
 
-###############################################################################
-### Confirmed
-
 dfs_pivot_c= dfs.pivot(index='date', columns='region_name',values='cases')
 
 dfs_norm_10case = []
@@ -458,10 +455,9 @@ fig_spain_map.add_trace(go.Scattergeo(
                                         hoverinfo='skip',
                                         ))
 
-fig_spain_map.update_layout(  title = 'Confirmed cases in Spain by region',
-                    width = 500,
-                    height = 500,
-                    title_x=0.5,
+fig_spain_map.update_layout(
+                    width = 600,
+                    height = 400,
                     margin = dict(t=0, l=0, r=0, b=0),
                     showlegend=False
                  )
@@ -517,7 +513,7 @@ fig_pie_chart =go.Figure(go.Sunburst(labels = labels,
                                                         "color": "#377eb8"},
                                      insidetextfont = {"size": 10},))
 
-fig_pie_chart.update_layout(width = 500,height = 500,
+fig_pie_chart.update_layout(width = 400,height = 400,
                             margin = dict(t=0, l=0, r=0, b=0))
 
 ###############################################################################
@@ -537,35 +533,41 @@ app.layout = dbc.Container([
                             style={'font-family': 'Helvetica',
                                    'margin-top': '25', 'margin-bottom': '0'}),
                     html.P(\
-                        'Data normalised to allow comparison between countries',
+                'Data normalised to allow comparison between countries/regions',
                             style={'font-family': 'Helvetica',
                                    'font-size': '100%', 'width': '80%'})
                      ]),#Div
             ###################################################################
             ### Select Coutnries - Multi-Select Dropdown
             html.Div([
-                    html.P('Select Countries:'),
+                ###############################################################
+                ### Worldwide Title
+                html.Hr(),
+                html.H2('Worldwide',
+                       style={'font-family': 'Helvetica',
+                              'margin-top': '25', 'margin-bottom': '20'}),
+                html.P('Select Countries:'),
 
-                    dcc.RadioItems(
-                        id = 'country_set',
-                        options=[
-                            {'label': ' !', 'value': '!'},
-                            {'label': ' All', 'value': 'All'},
-                            {'label': ' Africa', 'value': 'Africa'},
-                            {'label': ' Americas', 'value': 'Americas'},
-                            {'label': ' Asia', 'value': 'Asia'},
-                            {'label': ' Europe', 'value': 'Europe'},
-                            {'label': ' Oceania', 'value': 'Oceania'},
-                            {'label': ' Strands', 'value': 'Strands'} ],
-                        value='!',
-                        labelStyle={'display': 'inline-block','margin': '5px'}),
+                dcc.RadioItems(
+                    id = 'country_set',
+                    options=[
+                        {'label': ' !', 'value': '!'},
+                        {'label': ' All', 'value': 'All'},
+                        {'label': ' Africa', 'value': 'Africa'},
+                        {'label': ' Americas', 'value': 'Americas'},
+                        {'label': ' Asia', 'value': 'Asia'},
+                        {'label': ' Europe', 'value': 'Europe'},
+                        {'label': ' Oceania', 'value': 'Oceania'},
+                        {'label': ' Strands', 'value': 'Strands'} ],
+                    value='!',
+                    labelStyle={'display': 'inline-block','margin': '5px'}),
 
-                    dcc.Dropdown(
-                        id = 'Selected_Countries',
-                        multi=True ),
-                    ],#Div
-                    style={'font-family': 'Helvetica','margin-top': '10',
-                    'font-size': '100%', 'width': '100%'}),
+                dcc.Dropdown(
+                    id = 'Selected_Countries',
+                    multi=True ),
+                ],#Div
+                style={'font-family': 'Helvetica','margin-top': '10',
+                'font-size': '100%', 'width': '100%'}),
             ],align='center'),#Row
 ###############################################################################
 ### Row 2
@@ -583,7 +585,10 @@ app.layout = dbc.Container([
                            id = 'yaxis_scale',
                            options=[{'label': ' Linear', 'value': 'lin'},
                                     {'label': ' Logarithmic', 'value': 'log'} ],
-                           value='log' ),#RadioItems
+                           value='log',
+                           labelStyle={'display': 'inline-block',
+                                       'margin': '5px'}
+                           ),#RadioItems
                            ],style={'font-family': 'Helvetica','margin-top': '10',
                                   'font-size': '100%', 'width': 150})#Div
                               ]),#FormGroup
@@ -597,7 +602,9 @@ app.layout = dbc.Container([
                            {'label': ' Confirmed', 'value': 'cases'},
                            {'label': ' Deaths', 'value': 'deaths'},
                            {'label': ' Daily Deaths', 'value': 'daily_deaths'}],
-                                       value='cases' ),#RadioItems
+                                       value='cases',
+                                       labelStyle={'display': 'inline-block',
+                                                   'margin': '5px'}),#RadioItems
                                  ],
                            style={'font-family': 'Helvetica','margin-top': '10',
                                   'font-size': '100%', 'width': 150})#Div,
@@ -634,7 +641,9 @@ app.layout = dbc.Container([
                                    options=[
                                       {'label': ' Confirmed', 'value': 'cases'},
                                        {'label': ' Deaths', 'value': 'deaths'}],
-                                   value='cases' ),#RadioItems
+                                   value='cases',
+                                   labelStyle={'display': 'inline-block',
+                                               'margin': '5px'}),#RadioItems
                              ],style={'font-family': 'Helvetica',
                                       'margin-top': '10',
                                       'font-size': '100%', 'width': 150})#Div
@@ -648,11 +657,8 @@ app.layout = dbc.Container([
                 ###############################################################
                 #### Map Graph
                 dcc.Graph(id = 'Maps')
-                ],
-      style={'font-family': 'Helvetica','margin-top': '10',
-             'font-size': '100%',
-             #'width': '80%'
-             }),
+                ], style={'font-family': 'Helvetica','margin-top': '10',
+                          'font-size': '100%'}),
         ], md=8),#Col
     ], align='center'),#Row
 
@@ -666,7 +672,7 @@ app.layout = dbc.Container([
         html.Div([
            ####################################################################
            ### Spain Title
-           html.Spacer(),html.Hr(),
+           html.Hr(),
            html.H2('Spain',
                    style={'font-family': 'Helvetica',
                           'margin-top': '25', 'margin-bottom': '20'}),
@@ -705,7 +711,8 @@ app.layout = dbc.Container([
                            id = 'yaxis_scale_s',
                            options=[{'label': ' Linear', 'value': 'lin'},
                                     {'label': ' Logarithmic', 'value': 'log'} ],
-                           value='log' ),#RadioItems
+                           value='log',labelStyle={'display': 'inline-block',
+                                       'margin': '5px'}),#RadioItems
                                ],style={'font-family': 'Helvetica',
                                         'margin-top': '10',
                                         'font-size': '100%', 'width': 150})#Div
@@ -720,7 +727,9 @@ app.layout = dbc.Container([
                            {'label': ' Confirmed', 'value': 'cases'},
                            {'label': ' Deaths', 'value': 'deaths'},
                            {'label': ' Daily Deaths', 'value': 'daily_deaths'}],
-                                       value='cases' ),#RadioItems
+                                       value='cases',
+                                       labelStyle={'display': 'inline-block',
+                                                   'margin': '5px'}),#RadioItems
                                 ],style={'font-family': 'Helvetica',
                                          'margin-top': '10',
                                          'font-size': '100%', 'width': 150})#Div
@@ -751,15 +760,17 @@ app.layout = dbc.Container([
                 dcc.Graph(id = 'Pie_Chart',figure=fig_pie_chart),
                 ],
       style={'font-family': 'Helvetica','margin-top':'10',
-             'font-size': '100%', 'width': '10%'}),
+             'font-size': '100%'}),
 
-        ], md=6),#Col
+        ], width=5),#Col
+
         #######################################################################
         ### Col2
         dbc.Col([
             html.Div([
                ################################################################
                #### Map Graph
+               dbc.Label('Confirmed Cases per Region:'),
                dcc.Graph(id = 'Spain_Map',figure=fig_spain_map),
                 ],
       style={'font-family': 'Helvetica','margin-top': '10',
@@ -776,8 +787,8 @@ app.layout = dbc.Container([
             #         style ={'font-family': 'Helvetica','margin-top': '10',
             #                 #'writing-mode': 'vertical-lr',
             #                 'text-orientation': 'sideways'})
-        ], md=6),#Col
-    ], align='center'),#Row
+        ],width=5),#Col
+    ], justify="between"),#Row
 
 ###############################################################################
 ### Row 7
@@ -809,14 +820,19 @@ def callback_Map_cases(Map_cases_value):
     if Map_cases_value == 'cases':
         fig = px.scatter_geo(df_geo, locations="iso_alpha", color="continent",
                                      hover_name="country", size="cases",
-                                     animation_frame="day",
+                                     animation_frame="day",size_max=100,
                                      projection="natural earth")
 
     elif Map_cases_value == 'deaths':
         fig = px.scatter_geo(df_geo, locations="iso_alpha", color="continent",
                                      hover_name="country", size="deaths",
-                                     animation_frame="day",
+                                     animation_frame="day",size_max=50,
                                      projection="natural earth")
+
+    fig.update_layout(  width = 800,
+                        height = 500,
+                        margin = dict(t=0, l=0, r=0, b=0)
+                     )
     return fig
 
 ###############################################################################
