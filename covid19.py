@@ -201,7 +201,7 @@ Africa = ['Algeria', 'Mauritania', 'Burundi', 'Malawi', 'Guinea',
           'South_Africa', 'Zambia', 'Zimbabwe', 'Tunisia', 'Angola',
           'United_Republic_of_Tanzania', 'Rwanda', 'Cape_Verde',
           'Equatorial_Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Madagascar',
-          'Mozambique', 'Niger', 'Seychelles']
+          'Mozambique', 'Niger', 'Seychelles','South_Sudan']
 
 Americas = ['Argentina', 'Montserrat', 'Maldives', 'Guyana', 'Haiti',
             'British_Virgin_Islands', 'Bonaire, Saint Eustatius and Saba',
@@ -219,18 +219,18 @@ Americas = ['Argentina', 'Montserrat', 'Maldives', 'Guyana', 'Haiti',
 
 Asia = ['Afghanistan', 'Algeria', 'Armenia', 'Azerbaijan',
         'Bahrain','Timor_Leste', 'Guam', 'Brunei_Darussalam', 'Cambodia',
-        'Bangladesh', 'Bhutan', 'Syria', 'Nepal', 'Laos',
+        'Bangladesh', 'Bhutan', 'Syria', 'Nepal', 'Laos','Sao_Tome_and_Principe'
         'Cases_on_an_international_conveyance_Japan', 'China', 'India',
         'Mongolia', 'Myanmar', 'Indonesia', 'Iran', 'Iraq', 'Israel', 'Japan',
         'Jordan', 'Kazakhstan', 'Kuwait', 'Kyrgyzstan', 'Lebanon', 'Malaysia',
         'Oman', 'Pakistan', 'Palestine', 'Philippines', 'Qatar', 'Russia',
         'Saudi_Arabia', 'Singapore', 'South_Korea', 'Sri_Lanka', 'Taiwan',
         'Thailand', 'Fiji', 'French_Polynesia', 'Tunisia', 'Turkey',
-        'United_Arab_Emirates', 'Uzbekistan', 'Vietnam']
+        'United_Arab_Emirates', 'Uzbekistan', 'Vietnam','Yemen']
 
 Europe = ['Albania', 'Holy_See', 'Andorra', 'Austria', 'Belarus', 'Belgium',
           'Monaco', 'Bosnia_and_Herzegovina', 'Bulgaria',  'Croatia', 'Cyprus',
-          'Czech_Republic', 'Denmark', 'Estonia', 'Finland', 'France',
+          'Czech_Republic', 'Czechia','Denmark', 'Estonia', 'Finland', 'France',
           'Liechtenstein', 'Faroe_Islands', 'Germany', 'Greece', 'Guernsey',
           'Hungary', 'Iceland', 'Ireland', 'Isle_of_Man', 'Italy', 'Jersey',
           'Kosovo', 'Latvia', 'Lithuania', 'Luxembourg',  'Malta', 'Moldova',
@@ -428,41 +428,9 @@ dfs_norm_3death_roll = dfs_norm_3death_roll.dropna(how='all',axis = 1)
 
 df_geos = pd.merge(dfs, df_loc.drop('region_name',axis=1),\
                                              how='inner', on='region').fillna(0)
+
 datas = df_geos[df_geos.date == df_geos.date.unique()[-1]]
 
-fig_spain_map = go.Figure(go.Scattergeo(
-                                        lon = datas['long'],
-                                        lat = datas['lat'],
-                                        text = datas['region_name']+': '\
-                                                    +datas['cases'].astype(str),
-                                        mode = 'markers',
-                                        marker = dict(size = datas['cases']/40,
-                                                    color = coloursp,
-                                                    line_width=0.5,
-                                                    sizemode = 'area'),
-                                        )
-                           )
-
-fig_spain_map.add_trace(go.Scattergeo(
-                                        lon = datas['long'],
-                                        lat = datas['lat'],
-                                        text = datas['region'],
-                                        mode = 'text',
-                                        marker = dict(size = 0,
-                                                    color = coloursp,
-                                                    line_width=0.0,
-                                                    sizemode = 'area'),
-                                        hoverinfo='skip',
-                                        ))
-
-fig_spain_map.update_layout(
-                    width = 600,
-                    height = 400,
-                    margin = dict(t=0, l=0, r=0, b=0),
-                    showlegend=False
-                 )
-
-fig_spain_map.update_geos(fitbounds="locations")
 ###############################################################################
 ### Pie chart
 
@@ -771,22 +739,24 @@ app.layout = dbc.Container([
                ################################################################
                #### Map Graph
                dbc.Label('Confirmed Cases per Region:'),
-               dcc.Graph(id = 'Spain_Map',figure=fig_spain_map),
+               dcc.Graph( id = 'Spain_Map'),
                 ],
-      style={'font-family': 'Helvetica','margin-top': '10',
-             'font-size': '100%', 'width': '100%'}),
-            #html.Div([
-            #   dcc.Slider(min=0,
-            #              max=len(df_geos.date.dt.date.astype(str).unique()),
-            #              marks={i:'{}'.format(date) for i,date in \
-            #              enumerate(df_geos.date.dt.date.astype(str).unique())},
-            #              value=len(df_geos.date.dt.date.astype(str).unique()),
-            #              updatemode='drag',
-            #              )
-            #         ],
-            #         style ={'font-family': 'Helvetica','margin-top': '10',
-            #                 #'writing-mode': 'vertical-lr',
-            #                 'text-orientation': 'sideways'})
+                          style={'font-family': 'Helvetica','margin-top': '10',
+                                 'font-size': '100%', 'width': '100%'}),
+            html.Div([
+              dcc.Slider(id = 'Slider_Spain',
+                         min=0,
+                         max=len(df_geos.date.dt.date.astype(str).unique())-1,
+                         marks={0: df_geos.date.dt.date.astype(str).unique()[0],
+                         len(df_geos.date.dt.date.astype(str).unique()) :\
+                         df_geos.date.dt.date.astype(str).unique()[-1]},
+                         value=len(df_geos.date.dt.date.astype(str).unique())-1,
+                         updatemode='drag',
+                        ),
+                     ],
+                     style ={'font-family': 'Helvetica','margin-top': '10',
+                             'width': '100%',
+                             })
         ],width=5),#Col
     ], justify="between"),#Row
 
@@ -834,6 +804,51 @@ def callback_Map_cases(Map_cases_value):
                         margin = dict(t=0, l=0, r=0, b=0)
                      )
     return fig
+
+###############################################################################
+#### Spain Map Date Slider
+@app.callback(Output('Spain_Map', 'figure'),
+             [Input('Slider_Spain', 'value')])
+def callback_Slider_Spain(Slider_Spain_value):
+
+    data = df_geos[df_geos.date == df_geos.date.unique()[Slider_Spain_value]]
+
+    fig_spain_map = go.Figure(go.Scattergeo(
+                                        lon = data['long'],
+                                        lat = data['lat'],
+                                        text = data['region_name']+': '\
+                                                    +data['cases'].astype(str),
+                                        mode = 'markers',
+                                        marker = dict(size = data['cases']/40,
+                                                    color = coloursp,
+                                                    line_width=0.5,
+                                                    sizemode = 'area'),
+                                            )
+                               )
+
+    fig_spain_map.add_trace(go.Scattergeo(
+                                            lon = data['long'],
+                                            lat = data['lat'],
+                                            text = data['region'],
+                                            mode = 'text',
+                                            marker = dict(size = 0,
+                                                        color = coloursp,
+                                                        line_width=0.0,
+                                                        sizemode = 'area'),
+                                            hoverinfo='skip',
+                                            ))
+
+    fig_spain_map.update_layout(
+                        width = 600,
+                        height = 400,
+                        margin = dict(t=0, l=0, r=0, b=0),
+                        showlegend=False
+                     )
+
+    fig_spain_map.update_geos(fitbounds="locations")
+
+
+    return fig_spain_map
 
 ###############################################################################
 #### Region Selector
@@ -953,7 +968,8 @@ colours = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3',
 '#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA',
 '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA',
 '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880',
-'#FF97FF', '#FECB52', '#636EFA', '#EF553B']
+'#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#636EFA', '#EF553B', '#00CC96',
+'#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880']
 
 # Reference line color
 color_balck = 'rgb(67,67,67)'
@@ -979,8 +995,15 @@ def callback_Line_Graph(Selected_Countries_value,
       'Comulative number of confirmed cases, by number of days since 100th case'
         x_title = 'Number of days since 100th case'
         y_title = 'Comulative number of cases'
-        range_x = [0,80]
-        range_y = [90,400000]
+        rx = []
+        for column in data.columns:
+            rx.append(np.count_nonzero(~np.isnan(data[column])))
+        if not rx:
+            rx = 0
+        else:
+            rx = max(rx) + 10
+        range_x = [0,rx]
+        range_y = [90,data.max().max() * 1.05]
         range_logy = [np.log10(90),np.log10(1e6)]
 
         plot_data = []
@@ -1035,8 +1058,15 @@ def callback_Line_Graph(Selected_Countries_value,
         'Comulative number of deaths, by number of days since 10th death'
         x_title = 'Number of days since 10th death'
         y_title = 'Comulative number of deaths'
-        range_x = [0,80]
-        range_y = [9,2e4]
+        rx = []
+        for column in data.columns:
+            rx.append(np.count_nonzero(~np.isnan(data[column])))
+        if not rx:
+            rx = 0
+        else:
+            rx = max(rx) + 10
+        range_x = [0,rx]
+        range_y = [9,data.max().max() * 1.05]
         range_logy = [np.log10(9),np.log10(1e5)]
 
         plot_data = []
@@ -1090,8 +1120,15 @@ def callback_Line_Graph(Selected_Countries_value,
         title = 'Daily deaths'
         x_title = 'Number of days since 3 daily deaths first recorded'
         y_title = 'Number of daily deaths (7 day rolling average)'
-        range_x = [0,80]
-        range_y = [1,1500]
+        rx = []
+        for column in data.columns:
+            rx.append(np.count_nonzero(~np.isnan(data[column])))
+        if not rx:
+            rx = 0
+        else:
+            rx = max(rx) + 10
+        range_x = [0,rx]
+        range_y = [1,data.max().max() * 1.05]
         range_logy = [np.log10(1),np.log10(3e3)]
 
         plot_data = []
@@ -1341,4 +1378,4 @@ def callback_Line_Graph(Selected_Regions_value,
 ###############################################################################
 
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(debug=True)
