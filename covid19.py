@@ -6,6 +6,7 @@
 
 # Perform imports here:
 import pandas as pd
+pd.options.mode.chained_assignment = None  # default='warn'
 import numpy as np
 import io
 import requests
@@ -36,9 +37,30 @@ s = requests.get(url).content
 df = pd.read_csv(io.StringIO(s.decode('utf-8')))
 df.sort_values(['countryterritoryCode',
                 'year','month','day']).reset_index(drop=True)
+df['dateRep'] = pd.to_datetime(df['dateRep'], format = '%d/%m/%Y').dt.date
+df_bar = df
 df = df[['dateRep','day','month','year','cases','deaths',
          'countriesAndTerritories', 'geoId','countryterritoryCode']]
-df['dateRep'] = pd.to_datetime(df['dateRep'], format = '%d/%m/%Y').dt.date
+
+colours = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3',
+'#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96',
+'#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52',
+'#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692',
+'#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA',
+'#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA',
+'#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880',
+'#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A',
+'#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B',
+'#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF',
+'#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3',
+'#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96',
+'#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52',
+'#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692',
+'#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA',
+'#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA',
+'#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880',
+'#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#636EFA', '#EF553B', '#00CC96',
+'#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880']
 
 ###############################################################################
 ### Cases
@@ -171,6 +193,99 @@ df_norm_3death = df_norm_3death.drop(['Algeria','Iraq','Philippines',
                                       'San_Marino','Slovenia'],axis=1)
 
 ###############################################################################
+### Bar-plot
+
+df_bar_cases = df_bar.drop(['day','month','year','geoId',
+                            'countryterritoryCode','popData2018'],axis=1)
+df_bar_cases = df_bar_cases.groupby('countriesAndTerritories')\
+                           .sum().reset_index()
+df_bar_cases['popData2018'] = df_bar['popData2018']
+df_bar_cases['cases_per_mill'] = ((df_bar_cases['cases'] * 1e6) / \
+                                        df_bar_cases['popData2018']).astype(int)
+df_bar_cases_per_mill = df_bar_cases\
+                  .sort_values('cases_per_mill',ascending=False).iloc[:11,:]
+df_bar_cases = df_bar_cases.sort_values('cases',ascending=False).iloc[:11,:]
+
+df_bar_deaths = df_bar.drop(['day','month','year','geoId',
+                             'countryterritoryCode','popData2018'],axis=1)
+df_bar_deaths = df_bar_cases.groupby('countriesAndTerritories')\
+                            .sum().reset_index()
+df_bar_deaths['popData2018'] = df_bar['popData2018']
+df_bar_deaths['deaths_per_mill'] = ((df_bar_deaths['deaths'] * 1e6) / \
+                                       df_bar_deaths['popData2018']).astype(int)
+df_bar_deaths_per_mill = df_bar_deaths\
+                    .sort_values('deaths_per_mill',ascending=False).iloc[:11,:]
+df_bar_deaths = df_bar_deaths.sort_values('deaths',ascending=False).iloc[:11,:]
+
+margin_l = 162
+
+fig_bar_total_c = px.bar(df_bar_cases,
+                         x='cases',
+                         y='countriesAndTerritories',
+                         text='cases',
+                         color='countriesAndTerritories',
+                         orientation='h',
+                         hover_data=['countriesAndTerritories', 'cases'],
+                        )
+fig_bar_total_c.update_layout(
+    margin = dict(t=0, l=margin_l, r=0, b=0),
+    showlegend=False,
+    xaxis={'title': ''},
+    yaxis={'title': ''},
+    template = 'plotly_white',
+)
+fig_bar_total_d = px.bar(df_bar_deaths,
+                         x='deaths',
+                         y='countriesAndTerritories',
+                         text='deaths',
+                         color='countriesAndTerritories',
+                         orientation='h',
+                         hover_data=['countriesAndTerritories', 'deaths'],
+                        )
+fig_bar_total_d.update_layout(
+    margin = dict(t=0, l=margin_l, r=0, b=0),
+    showlegend=False,
+    xaxis={'title': ''},
+    yaxis={'title': ''},
+    template = 'plotly_white',
+)
+
+fig_bar_permill_c = px.bar(df_bar_cases_per_mill,
+                           x='cases_per_mill',
+                           y='countriesAndTerritories',
+                           text='cases_per_mill',
+                           color='countriesAndTerritories',
+                           orientation='h',
+                           hover_data=['countriesAndTerritories',
+                                       'cases_per_mill'
+                                       ],
+                          )
+fig_bar_permill_c.update_layout(
+    margin = dict(t=0, l=margin_l, r=0, b=0),
+    showlegend=False,
+    xaxis={'title': ''},
+    yaxis={'title': ''},
+    template = 'plotly_white',
+)
+fig_bar_permill_d = px.bar(df_bar_deaths_per_mill,
+                           x='deaths_per_mill',
+                           y='countriesAndTerritories',
+                           text='deaths_per_mill',
+                           color='countriesAndTerritories',
+                           orientation='h',
+                           hover_data=['countriesAndTerritories',
+                                       'deaths_per_mill'
+                                       ],
+                          )
+fig_bar_permill_d.update_layout(
+    margin = dict(t=0, l=margin_l, r=0, b=0),
+    showlegend=False,
+    xaxis={'title': ''},
+    yaxis={'title': ''},
+    template = 'plotly_white',
+)
+
+###############################################################################
 ### Geo-plot
 
 df_geo = df[df.year != 2019].drop(['day','year','month','geoId'],axis=1)
@@ -285,7 +400,7 @@ df_loc = pd.DataFrame([
     ('VC','Valencia', -0.7500000, 39.5000000)],
    columns=['region','region_name','long','lat'])
 
-dfs = dfs.iloc[:-2,:]
+dfs = dfs.iloc[:-6,:]
 dfs.columns = ['region','date','cases','hospitalised','ICU','deaths','recovered']
 dfs.date = pd.to_datetime(dfs.date, format='%d/%m/%Y')
 dfs = dfs.sort_values(['region','date'])
@@ -429,7 +544,68 @@ dfs_norm_3death_roll = dfs_norm_3death_roll.dropna(how='all',axis = 1)
 df_geos = pd.merge(dfs, df_loc.drop('region_name',axis=1),\
                                              how='inner', on='region').fillna(0)
 
-datas = df_geos[df_geos.date == df_geos.date.unique()[-1]]
+# Create figure
+fig_spain_map = go.Figure()
+
+# Add traces, one for each slider step
+for i in range(0,df_geos.date.unique().__len__()):
+    datas = df_geos[df_geos.date == df_geos.date.unique()[i]]
+
+    fig_spain_map.add_trace(
+        go.Scattergeo(
+            lon = datas['long'],
+            lat = datas['lat'],
+            text = datas['region_name']+': '+datas['cases'].astype(str),
+            mode = 'markers',
+            name = '',
+            marker = dict(
+                size = datas['cases']/40,
+                color = coloursp,
+                line_width=0.5,
+                sizemode = 'area'
+            )
+        )
+    )
+
+    fig_spain_map.add_trace(
+        go.Scattergeo(
+            lon = datas['long'],
+            lat = datas['lat'],
+            text = datas['region'],
+            textfont={'size': i+1 if i < 12 else 12},
+            mode = 'text',
+            hoverinfo='skip',
+        )
+    )
+
+
+# Create and add slider
+steps = []
+j = 0
+for i in range(0,len(fig_spain_map.data),2):
+    step = dict(
+        label= str(df_geos.date.dt.month[j]) +'-'+ str(df_geos.date.dt.day[j]),
+        method="restyle",
+        args=["visible", [False] * len(fig_spain_map.data)],)
+    step["args"][1][i] = True  # Toggle i'th trace to "visible"
+    step["args"][1][i+1] = True
+    steps.append(step)
+    j += 1
+
+sliders = [dict(
+    #active=len(fig_spain_map.data)/2,
+    currentvalue={"prefix": "Date: "},
+    pad={"t": 50},
+    steps=steps)]
+
+fig_spain_map.update_layout(
+    width = 600,
+    height = 400,
+    margin = dict(t=0, l=4, r=0, b=0),
+    showlegend=False,
+    sliders=sliders)
+
+fig_spain_map.update_geos(fitbounds="locations")
 
 ###############################################################################
 ### Pie chart
@@ -585,9 +761,7 @@ app.layout = dbc.Container([
             html.Div([
                 ###############################################################
                 #### Line Graph
-                dcc.Graph(id='Line_Graph',
-                          #hoverData={'points': [{'customdata': 'Japan'}]}
-                          ),
+                dcc.Graph(id='Line_Graph'),
                      ],style={'font-family': 'Helvetica','margin-top': '10',
                             'font-size': '100%', 'width': '80%'}),#Div
                ], md=8),#Col
@@ -629,6 +803,60 @@ app.layout = dbc.Container([
                           'font-size': '100%'}),
         ], md=8),#Col
     ], align='center'),#Row
+
+###############################################################################
+### Row 4
+    dbc.Row([
+        #######################################################################
+        ### Col1
+        dbc.Col([
+            html.Div([
+                dbc.Label('Confirmed Cases:'),
+                ###############################################################
+                #### Bar plot - cases
+                dcc.Graph(id = 'Bar_total_c',figure=fig_bar_total_c,
+                          config={'displayModeBar': False})
+                ], style={'font-family': 'Helvetica','margin-top': '10',
+                          'font-size': '100%'}),
+        ], md=3),#Col
+        #######################################################################
+        ### Col2
+        dbc.Col([
+            html.Div([
+                dbc.Label('Deaths:'),
+                ###############################################################
+                #### Bar plot - deaths
+                dcc.Graph(id = 'Bar_total_d',figure=fig_bar_total_d,
+                          config={'displayModeBar': False})
+                ], style={'font-family': 'Helvetica','margin-top': '10',
+                          'font-size': '100%'}),
+        ], md=3),#Col
+        #######################################################################
+        ### Col3
+        dbc.Col([
+            html.Div([
+                dbc.Label('Cases per million people:'),
+                ###############################################################
+                #### Bar plot - cases per mill
+                dcc.Graph(id = 'Bar_permill_c',figure=fig_bar_permill_c,
+                          config={'displayModeBar': False})
+                ], style={'font-family': 'Helvetica','margin-top': '10',
+                          'font-size': '100%'}),
+        ], md=3),#Col
+        #######################################################################
+        ### Col4
+        dbc.Col([
+            html.Div([
+                dbc.Label('Deaths per million people:'),
+                ###############################################################
+                #### Bar plot - deaths per mill
+                dcc.Graph(id = 'Bar_permill_d',figure=fig_bar_permill_d,
+                          config={'displayModeBar': False})
+                ], style={'font-family': 'Helvetica','margin-top': '10',
+                          'font-size': '100%'}),
+        ], md=3),#Col
+    ], align='center'),#Row
+
 
 ###############################################################################
 ###                                 Spain                                   ###
@@ -727,8 +955,8 @@ app.layout = dbc.Container([
                 dbc.Label('Click on regions for more info:'),
                 dcc.Graph(id = 'Pie_Chart',figure=fig_pie_chart),
                 ],
-      style={'font-family': 'Helvetica','margin-top':'10',
-             'font-size': '100%'}),
+                          style={'font-family': 'Helvetica','margin-top':'10',
+                                 'font-size': '100%'}),
 
         ], width=5),#Col
 
@@ -739,25 +967,11 @@ app.layout = dbc.Container([
                ################################################################
                #### Map Graph
                dbc.Label('Confirmed Cases per Region:'),
-               dcc.Graph( id = 'Spain_Map'),
+               dcc.Graph( id = 'Spain_Map',figure=fig_spain_map),
                 ],
                           style={'font-family': 'Helvetica','margin-top': '10',
                                  'font-size': '100%', 'width': '100%'}),
-            html.Div([
-              dcc.Slider(id = 'Slider_Spain',
-                         min=0,
-                         max=len(df_geos.date.dt.date.astype(str).unique())-1,
-                         marks={0: df_geos.date.dt.date.astype(str).unique()[0],
-                         len(df_geos.date.dt.date.astype(str).unique()) :\
-                         df_geos.date.dt.date.astype(str).unique()[-1]},
-                         value=len(df_geos.date.dt.date.astype(str).unique())-1,
-                         updatemode='drag',
-                        ),
-                     ],
-                     style ={'font-family': 'Helvetica','margin-top': '10',
-                             'width': '100%',
-                             })
-        ],width=5),#Col
+        ], width=5),#Col
     ], justify="between"),#Row
 
 ###############################################################################
@@ -804,51 +1018,6 @@ def callback_Map_cases(Map_cases_value):
                         margin = dict(t=0, l=0, r=0, b=0)
                      )
     return fig
-
-###############################################################################
-#### Spain Map Date Slider
-@app.callback(Output('Spain_Map', 'figure'),
-             [Input('Slider_Spain', 'value')])
-def callback_Slider_Spain(Slider_Spain_value):
-
-    data = df_geos[df_geos.date == df_geos.date.unique()[Slider_Spain_value]]
-
-    fig_spain_map = go.Figure(go.Scattergeo(
-                                        lon = data['long'],
-                                        lat = data['lat'],
-                                        text = data['region_name']+': '\
-                                                    +data['cases'].astype(str),
-                                        mode = 'markers',
-                                        marker = dict(size = data['cases']/40,
-                                                    color = coloursp,
-                                                    line_width=0.5,
-                                                    sizemode = 'area'),
-                                            )
-                               )
-
-    fig_spain_map.add_trace(go.Scattergeo(
-                                            lon = data['long'],
-                                            lat = data['lat'],
-                                            text = data['region'],
-                                            mode = 'text',
-                                            marker = dict(size = 0,
-                                                        color = coloursp,
-                                                        line_width=0.0,
-                                                        sizemode = 'area'),
-                                            hoverinfo='skip',
-                                            ))
-
-    fig_spain_map.update_layout(
-                        width = 600,
-                        height = 400,
-                        margin = dict(t=0, l=0, r=0, b=0),
-                        showlegend=False
-                     )
-
-    fig_spain_map.update_geos(fitbounds="locations")
-
-
-    return fig_spain_map
 
 ###############################################################################
 #### Region Selector
@@ -950,26 +1119,6 @@ def callback_country_set(country_set_value):
 
 ###############################################################################
 #### Line Graph
-
-colours = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3',
-'#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96',
-'#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52',
-'#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692',
-'#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA',
-'#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA',
-'#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880',
-'#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A',
-'#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B',
-'#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF',
-'#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3',
-'#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96',
-'#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52',
-'#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692',
-'#B6E880', '#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#00CC96', '#AB63FA',
-'#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#636EFA',
-'#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880',
-'#FF97FF', '#FECB52', '#636EFA', '#EF553B', '#636EFA', '#EF553B', '#00CC96',
-'#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880']
 
 # Reference line color
 color_balck = 'rgb(67,67,67)'
