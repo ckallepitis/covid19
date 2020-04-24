@@ -635,12 +635,12 @@ data_sun_active = pd.melt(data_sun, id_vars=['active'],
 data_sun_active['active'] = data_sun_active['active'].apply(str)
 data_sun_active = data_sun_active.sort_values('active')
 
-for r in df_loc.region:
+for r in data_sun_total.region:
     data_sun_cases[data_sun_cases.region == r] = \
     data_sun_cases[data_sun_cases.region == r]\
     .replace('active','active ('+r+')')
 
-a = [ 'active ('+ i +')' for i in list(df_loc.region)] * 3
+a = [ 'active ('+ i +')' for i in list(data_sun_total.region)] * 3
 a.sort()
 
 labels = list(data_sun_total.region) + list(data_sun_cases.variable) \
@@ -1527,4 +1527,4 @@ def callback_Line_Graph(Selected_Regions_value,
 ###############################################################################
 
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(debug=True)
