@@ -20,7 +20,9 @@ import plotly.express as px
 
 # Launch the application:
 
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+BS = "https://stackpath.bootstrapcdn.com/bootswatch/4.4.1/litera/bootstrap.min.css"
+app = dash.Dash(external_stylesheets=[BS])
+#app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
 ###############################################################################
@@ -401,8 +403,11 @@ df_loc = pd.DataFrame([
    columns=['region','region_name','long','lat'])
 
 dfs = dfs.iloc[:-6,:]
-dfs.columns = ['region','date','cases','hospitalised','ICU','deaths','recovered']
+dfs.columns = ['region','date','cases','PCR+','TestAc+',\
+               'hospitalised','ICU','deaths','recovered']
 dfs.date = pd.to_datetime(dfs.date, format='%d/%m/%Y')
+dfs['cases'] = dfs['cases'].combine_first(dfs['PCR+'])
+dfs = dfs.drop(['PCR+','TestAc+'],axis=1)
 dfs = dfs.sort_values(['region','date'])
 dfs = pd.merge(dfs, df_loc[['region','region_name']], how='inner', on='region')
 
@@ -1527,4 +1532,5 @@ def callback_Line_Graph(Selected_Regions_value,
 ###############################################################################
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server()
+    #app.run_server(debug=True)
