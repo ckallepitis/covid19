@@ -37,6 +37,10 @@ server = app.server
 url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'
 s = requests.get(url).content
 df = pd.read_csv(io.StringIO(s.decode('utf-8')))
+df.countriesAndTerritories = df.countriesAndTerritories\
+                               .replace('United_States_of_America','USA')
+df.countriesAndTerritories = df.countriesAndTerritories\
+                               .replace('United_Kingdom','UK')
 df.sort_values(['countryterritoryCode',
                 'year','month','day']).reset_index(drop=True)
 df['dateRep'] = pd.to_datetime(df['dateRep'], format = '%d/%m/%Y').dt.date
@@ -219,7 +223,7 @@ df_bar_deaths_per_mill = df_bar_deaths\
                     .sort_values('deaths_per_mill',ascending=False).iloc[:11,:]
 df_bar_deaths = df_bar_deaths.sort_values('deaths',ascending=False).iloc[:11,:]
 
-margin_l = 162
+margin_l = 75
 
 fig_bar_total_c = px.bar(df_bar_cases,
                          x='cases',
@@ -328,7 +332,7 @@ Americas = ['Argentina', 'Montserrat', 'Maldives', 'Guyana', 'Haiti',
             'Colombia', 'Costa_Rica', 'Cuba', 'Dominican_Republic',
             'Turks_and_Caicos_islands', 'Ecuador', 'Honduras', 'Mexico',
             'Panama', 'Peru', 'Suriname', 'United_States_Virgin_Islands',
-            'Puerto_Rico', 'Trinidad_and_Tobago', 'United_States_of_America',
+            'Puerto_Rico', 'Trinidad_and_Tobago', 'USA',
             'Jamaica', 'Saint_Barthelemy', 'Saint_Kitts_and_Nevis', 'Uruguay',
             'Venezuela', 'Anguilla', 'Antigua_and_Barbuda', 'Aruba', 'Bahamas',
             'Guatemala', 'Grenada', 'Cayman_Islands', 'Curaçao', 'Dominica',
@@ -354,7 +358,7 @@ Europe = ['Albania', 'Holy_See', 'Andorra', 'Austria', 'Belarus', 'Belgium',
           'Montenegro', 'Netherlands', 'North_Macedonia', 'Norway', 'Poland',
           'Portugal',  'Romania', 'Russia', 'San_Marino', 'Serbia', 'Slovakia',
           'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine',
-          'United_Kingdom', 'Georgia', 'Gibraltar']
+          'UK', 'Georgia', 'Gibraltar']
 
 Oceania = ['Australia','New_Zealand','New_Caledonia','Northern_Mariana_Islands',
            'Papua_New_Guinea']
@@ -1076,8 +1080,8 @@ def callback_country_set(country_set_value):
         list = df_norm_100case.columns
         return list
     elif country_set_value == '!':
-        list = ['Spain', 'Italy', 'United_Kingdom', 'China', 'South_Korea',
-          'Japan', 'Taiwan', 'Germany', 'United_States_of_America']
+        list = ['Spain', 'Italy', 'UK', 'China', 'South_Korea',
+          'Japan', 'Taiwan', 'Germany', 'USA']
         return list
     elif country_set_value == 'Africa':
         list = ['Algeria', 'Burkina_Faso', 'Cameroon', 'Canada', 'Cote_dIvoire',
@@ -1089,7 +1093,7 @@ def callback_country_set(country_set_value):
         list = ['Argentina', 'Bolivia', 'Brazil', 'Canada', 'Chile',
             'Colombia', 'Costa_Rica', 'Cuba', 'Dominican_Republic',
             'Ecuador', 'Honduras', 'Mexico', 'Panama', 'Peru',
-            'Puerto_Rico', 'Trinidad_and_Tobago', 'United_States_of_America',
+            'Puerto_Rico', 'Trinidad_and_Tobago', 'USA',
             'Uruguay',  'Venezuela']
         return list
     elif country_set_value == 'Asia':
@@ -1112,13 +1116,13 @@ def callback_country_set(country_set_value):
           'Montenegro',  'Netherlands', 'North_Macedonia', 'Norway', 'Poland',
           'Portugal',  'Romania', 'Russia', 'San_Marino', 'Serbia', 'Slovakia',
           'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine',
-          'United_Kingdom']
+          'UK']
         return list
     elif country_set_value == 'Oceania':
         list = ['Australia','New_Zealand']
         return list
     elif country_set_value == 'Strands':
-        list = ['Argentina','Malaysia','Spain','United_States_of_America']
+        list = ['Argentina','Malaysia','Spain','USA']
         return list
     return
 
