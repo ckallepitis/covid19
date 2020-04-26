@@ -15,7 +15,7 @@ Spain has been given extra focus.
 
 The following are screenshots for the app in this repo:
 
-![animated1](screenshots/worldwide.png)
+![screenshot](screenshots/worldwide.png)
 
 ![screenshot](screenshots/dailydeaths.png)
 
