@@ -246,12 +246,12 @@ for i, country in enumerate(df_geo.country):
 # ========== Load Covid19 data ==========
 urls = 'https://covid19.isciii.es/resources/serie_historica_acumulados.csv'
 sp = requests.get(urls).content
-dfs = pd.read_csv(io.StringIO(sp.decode('latin1')))
+dfs = pd.read_csv(io.StringIO(sp.decode('latin1')),error_bad_lines=False)
 df_loc = pd.DataFrame(SPAIN_GEOLOCATIONS)
 
-dfs = dfs.iloc[:-6,:]
+dfs = dfs.iloc[:-8,:]
 dfs.columns = ['region','date','cases','PCR+','TestAc+',\
-               'hospitalised','ICU','deaths','recovered']
+               'hospitalised','ICU','deaths']#,'recovered']
 dfs.date = pd.to_datetime(dfs.date, format = '%d/%m/%Y')
 dfs['cases'] = dfs['cases'].combine_first(dfs['PCR+'])
 dfs = dfs.drop(['PCR+','TestAc+'],axis = 1)
@@ -409,44 +409,46 @@ datas = df_geo_spain[df_geo_spain.date == df_geo_spain.date.unique()\
                      [df_geo_spain.date.unique().__len__()-1]]
 
 data_sun = datas[['region','cases','hospitalised',
-                  'ICU','deaths','recovered']].copy()
-data_sun['active'] = pd.Series(data_sun.loc[:,'cases'] -\
-                               ( data_sun.loc[:,'deaths']\
-                                + data_sun.loc[:,'recovered']))
-data_sun['home_isolation'] = pd.Series(data_sun.loc[:,'active']\
-                                       - ( data_sun.loc[:,'hospitalised']))
+                  'ICU','deaths']].copy()#,'recovered']].copy()
+#data_sun['active'] = pd.Series(data_sun.loc[:,'cases'] -\
+#                               ( data_sun.loc[:,'deaths']\
+#                                + data_sun.loc[:,'recovered']
+#                                ))
+#data_sun['home_isolation'] = pd.Series(data_sun.loc[:,'active']\
+#                                       - ( data_sun.loc[:,'hospitalised']))
 data_sun = data_sun.reset_index(drop = True)
-data_sun['home_isolation'][7] = data_sun.loc[:,'home_isolation'][7] * (-1)
-data_sun['home_isolation'][14] = data_sun.loc[:,'home_isolation'][14] * (-1)
+#data_sun['home_isolation'][7] = data_sun.loc[:,'home_isolation'][7] * (-1)
+#data_sun['home_isolation'][14] = data_sun.loc[:,'home_isolation'][14] * (-1)
 
 data_sun_total = data_sun[['region','cases']]
 data_sun_total = pd.melt(data_sun_total, id_vars = ['region'],
                          value_vars = ['cases'])
 
 data_sun_cases = pd.melt(data_sun, id_vars = ['region'],
-                         value_vars = ['active','deaths','recovered'])
+                         value_vars = ['deaths'])
+                         #value_vars = ['active','deaths','recovered'])
 data_sun_cases = data_sun_cases.sort_values('region')
 
-data_sun_active = pd.melt(data_sun, id_vars = ['active'],
-                          value_vars = ['hospitalised','ICU', 'home_isolation'])
-data_sun_active['active'] = data_sun_active['active'].apply(str)
-data_sun_active = data_sun_active.sort_values('active')
+#data_sun_active = pd.melt(data_sun, id_vars = ['active'],
+#                          value_vars = ['hospitalised','ICU', 'home_isolation'])
+#data_sun_active['active'] = data_sun_active['active'].apply(str)
+#data_sun_active = data_sun_active.sort_values('active')
 
-for r in data_sun_total.region:
-    data_sun_cases[data_sun_cases.region == r] = \
-    data_sun_cases[data_sun_cases.region == r]\
-    .replace('active','active ('+ r +')')
+#for r in data_sun_total.region:
+#    data_sun_cases[data_sun_cases.region == r] = \
+#    data_sun_cases[data_sun_cases.region == r]\
+#    .replace('active','active ('+ r +')')
 
-a = [ 'active ('+ i +')' for i in list(data_sun_total.region)] * 3
-a.sort()
+#a = [ 'active ('+ i +')' for i in list(data_sun_total.region)] * 3
+#a.sort()
 
 labels = list(data_sun_total.region)   + list(data_sun_cases.variable) \
-                                       + list(data_sun_active.variable)
+                                       #+ list(data_sun_active.variable)
 parents = ['Spain'] * len(data_sun_total.region) \
-                                       + list(data_sun_cases['region']) + a
+                                       + list(data_sun_cases['region']) #+ a
 values = list(data_sun_total['value'].abs()) \
          + list(data_sun_cases['value'].abs()) \
-         + list(data_sun_active['value'].abs())
+         #+ list(data_sun_active['value'].abs())
 
 #=============================================================================#
 
