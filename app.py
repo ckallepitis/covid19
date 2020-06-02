@@ -277,10 +277,6 @@ app.layout = dbc.Container([
                         'label': ' Oceania',
                         'value': 'Oceania',
                     },
-                    {
-                        'label': ' Strands',
-                        'value': 'Strands',
-                    },
                 ],
                 value = '!',
                 labelStyle =
@@ -1046,11 +1042,6 @@ def callback_country_set(country_set_value):
     elif country_set_value == 'Oceania':
         list = [
             'Australia','New_Zealand',
-        ]
-        return list
-    elif country_set_value == 'Strands':
-        list = [
-            'Argentina','Malaysia','Spain','USA',
         ]
         return list
     return
