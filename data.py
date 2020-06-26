@@ -175,21 +175,21 @@ df_traj = {
 # ========== Bar-plot ==========
 
 df_bar_cases = df_bar_data.drop(['day','month','year','geoId',
-                            'countryterritoryCode','popData2018'], axis = 1)
+                            'countryterritoryCode','popData2019'], axis = 1)
 df_bar_cases = df_bar_cases.groupby('country').sum().reset_index()
-df_bar_cases['popData2018'] = df_bar_data['popData2018']
+df_bar_cases['popData2019'] = df_bar_data['popData2019']
 df_bar_cases['cases_per_mill'] = ((df_bar_cases['cases'] * 1e6) /\
-                                  df_bar_cases['popData2018']).astype(int)
+                                  df_bar_cases['popData2019']).astype(int)
 df_bar_cases_per_mill = df_bar_cases\
 .sort_values('cases_per_mill', ascending = False).iloc[:11,:]
 df_bar_cases = df_bar_cases.sort_values('cases', ascending = False).iloc[:11,:]
 
 df_bar_deaths = df_bar_data.drop(['day','month','year','geoId',
-                             'countryterritoryCode','popData2018'], axis = 1)
+                             'countryterritoryCode','popData2019'], axis = 1)
 df_bar_deaths = df_bar_cases.groupby('country').sum().reset_index()
-df_bar_deaths['popData2018'] = df_bar_data['popData2018']
+df_bar_deaths['popData2019'] = df_bar_data['popData2019']
 df_bar_deaths['deaths_per_mill'] = ((df_bar_deaths['deaths'] * 1e6) /\
-                                    df_bar_deaths['popData2018']).astype(int)
+                                    df_bar_deaths['popData2019']).astype(int)
 df_bar_deaths_per_mill = df_bar_deaths\
 .sort_values('deaths_per_mill', ascending = False).iloc[:11,:]
 df_bar_deaths = df_bar_deaths.sort_values('deaths',ascending= False).iloc[:11,:]
