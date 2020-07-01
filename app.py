@@ -19,7 +19,7 @@ import plotly.graph_objs as go
 import plotly.express as px
 
 from elements import COLOURS, COLOURS_SPAIN
-from data import df_traj, df_geo, df_bar
+from data import df_traj, df_bar#, df_geo,
 from data import df_traj_spain, df_geo_spain, df_sunburst
 
 # Launch the application:
@@ -426,81 +426,81 @@ app.layout = dbc.Container([
 
     #=========================================================================#
     #=== Row 3
-    dbc.Row(
-        [
-            #=================================================================#
-            #=== Col1
-            dbc.Col(
-                [
-                    dbc.Card(
-                        [
-                            dbc.FormGroup(
-                                [
-                                    #=========================================#
-                                    #=== Map Data Selector
-                                    html.Div(
-                                        [
-                                            dbc.Label('Cases:'),
-                                            dcc.RadioItems(
-                                                id = 'Map_cases',
-                                                options =
-                                                [
-                                                    {
-                                                        'label': ' Confirmed',
-                                                        'value': 'cases',
-                                                    },
-                                                    {'label': ' Deaths',
-                                                     'value': 'deaths',
-                                                    },
-                                                ],
-                                                value = 'cases',
-                                                labelStyle =
-                                                {
-                                                    'display': 'inline-block',
-                                                    'margin': '5px',
-                                                },
-                                            ),#RadioItems
-                                        ],
-                                        style =
-                                        {
-                                            'font-family': 'Helvetica',
-                                            'margin-top': '10',
-                                            'font-size': '100%',
-                                            'width': 150,
-                                        },
-                                    ),#Div
-                                ],
-                            ),#FormGroup
-                        ],
-                        body = True,
-                    ),#Card
-                ],
-                md = 3,
-            ),#Col1
+    #dbc.Row(
+    #    [
+    #        #=================================================================#
+    #        #=== Col1
+    #        dbc.Col(
+    #            [
+    #                dbc.Card(
+    #                    [
+    #                        dbc.FormGroup(
+    #                            [
+    #                                #=========================================#
+    #                                #=== Map Data Selector
+    #                                html.Div(
+    #                                    [
+    #                                        dbc.Label('Cases:'),
+    #                                        dcc.RadioItems(
+    #                                            id = 'Map_cases',
+    #                                            options =
+    #                                            [
+    #                                                {
+    #                                                    'label': ' Confirmed',
+    #                                                    'value': 'cases',
+    #                                                },
+    #                                                {'label': ' Deaths',
+    #                                                 'value': 'deaths',
+    #                                                },
+    #                                            ],
+    #                                            value = 'cases',
+    #                                            labelStyle =
+    #                                            {
+    #                                                'display': 'inline-block',
+    #                                                'margin': '5px',
+    #                                            },
+    #                                        ),#RadioItems
+    #                                    ],
+    #                                    style =
+    #                                    {
+    #                                        'font-family': 'Helvetica',
+    #                                        'margin-top': '10',
+    #                                        'font-size': '100%',
+    #                                        'width': 150,
+    #                                    },
+    #                                ),#Div
+    #                            ],
+    #                        ),#FormGroup
+    #                    ],
+    #                    body = True,
+    #                ),#Card
+    #            ],
+    #            md = 3,
+    #        ),#Col1
 
             #=================================================================#
             #=== Col2
-            dbc.Col(
-                [
-                    html.Div(
-                        [
-                            #=================================================#
-                            #=== Map Graph
-                            dcc.Graph(id = 'Maps'),
-                        ],
-                        style =
-                        {
-                            'font-family': 'Helvetica',
-                            'margin-top': '10',
-                            'font-size': '100%',
-                        },
-                    ),#Div
-                ],
-                md = 8,
-            ),#Col2
-        ],
-        align = 'center',
-    ),#Row3
+    #        dbc.Col(
+    #            [
+    #                html.Div(
+    #                    [
+    #                        #=================================================#
+    #                        #=== Map Graph
+    #                        dcc.Graph(id = 'Maps'),
+    #                    ],
+    #                    style =
+    #                    {
+    #                        'font-family': 'Helvetica',
+    #                        'margin-top': '10',
+    #                        'font-size': '100%',
+    #                    },
+    #                ),#Div
+    #            ],
+    #            md = 8,
+    #        ),#Col2
+    #    ],
+    #    align = 'center',
+    #),#Row3
 
     #=========================================================================#
     #=== Row 4
@@ -905,37 +905,37 @@ app.layout = dbc.Container([
 
 #=============================================================================#
 # ========== Map Selector ==========
-@app.callback(Output('Maps', 'figure'),
-             [Input('Map_cases', 'value')])
-def callback_Map_cases(Map_cases_value):
-
-    if Map_cases_value == 'cases':
-        fig = px.scatter_geo(
-            df_geo, locations = 'iso_alpha',
-            color = 'continent',
-            hover_name = 'country',
-            size = 'cases',
-            animation_frame = 'day',
-            size_max = 100,
-            projection = 'natural earth',
-        )
-
-    elif Map_cases_value == 'deaths':
-        fig = px.scatter_geo(
-            df_geo,
-            locations = 'iso_alpha',
-            color = 'continent',
-            hover_name = 'country',
-            size = 'deaths',
-            projection = 'natural earth',
-        )
-
-    fig.update_layout(
-        width = 800,
-        margin = dict(t = 0, l = 0, r = 0, b = 0),
-    )
-
-    return fig
+#@app.callback(Output('Maps', 'figure'),
+#             [Input('Map_cases', 'value')])
+#def callback_Map_cases(Map_cases_value):
+#
+#    if Map_cases_value == 'cases':
+#        fig = px.scatter_geo(
+#            df_geo, locations = 'iso_alpha',
+#            color = 'continent',
+#            hover_name = 'country',
+#            size = 'cases',
+#            animation_frame = 'day',
+#            size_max = 100,
+#            projection = 'natural earth',
+#        )
+#
+#    elif Map_cases_value == 'deaths':
+#        fig = px.scatter_geo(
+#            df_geo,
+#            locations = 'iso_alpha',
+#            color = 'continent',
+#            hover_name = 'country',
+#            size = 'deaths',
+#            projection = 'natural earth',
+#        )
+#
+#    fig.update_layout(
+#        width = 800,
+#        margin = dict(t = 0, l = 0, r = 0, b = 0),
+#    )
+#
+#    return fig
 
 #=============================================================================#
 # ========== Region Selector ==========
