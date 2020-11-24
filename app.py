@@ -14,7 +14,7 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
-import dash_daq as daq  
+import dash_daq as daq
 from dash.dependencies import Input, Output
 import plotly.express as px
 
@@ -23,20 +23,28 @@ from data import get_covid_data, get_line_graph_data
 from data import get_bar_plot_data, get_geo_data
 from data import get_covid_data_Spain, get_geo_Spain_data, get_sunburst_data
 
+from rq import Queue
+from worker import conn
+
+q = Queue(connection=conn)
+
 # Launch the application:
 app = dash.Dash(external_stylesheets=[dbc.themes.CERULEAN])
 app.config.suppress_callback_exceptions = True
 server = app.server
 
 # World Data
-df = get_covid_data()
+df = q.enqueue(get_covid_data,
+ 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv')
+#df = get_covid_data()
 df_line_data = get_line_graph_data(df)
 df_geo = get_geo_data(df)
 df_bar = get_bar_plot_data(df)
 
 # Spain Data
+#df_spain = q.enqueue(get_covid_data_Spain, 'http://heroku.com')
 df_spain = get_covid_data_Spain()
-df_spain_line_data = df_spain[['Date', 'Cases', 'Daily_Cases', 'Deaths', 
+df_spain_line_data = df_spain[['Date', 'Cases', 'Daily_Cases', 'Deaths',
                                'Daily_Deaths', 'Region', 'Region_Name']]
 df_geo_spain = get_geo_Spain_data(df_spain)
 df_sunburst = get_sunburst_data(df_spain)
@@ -88,7 +96,7 @@ fig_bar.update_layout(
 #=============================================================================#
 # ========== Sunburst plot ==========
 
-fig_sunburst = px.sunburst(df_sunburst, 
+fig_sunburst = px.sunburst(df_sunburst,
                            path=['Country','Region_Name','Cases','variable'],
                            values='value')
 
@@ -220,7 +228,7 @@ world = dbc.Container([
         ],
             md = 2,
         ),#Col1
-        
+
         #=====================================================================#
         #=== Col2
         dbc.Col([
@@ -273,7 +281,7 @@ world = dbc.Container([
         ],
             md = 2,
         ),#Col1
-        
+
         #=====================================================================#
         #=== Col2
         dbc.Col([
@@ -304,14 +312,14 @@ world = dbc.Container([
         ),#Col
     ]
     ),#Row4
-    
+
     #=========================================================================#
     #=== Row 5
     dbc.Row([
         dbc.Label('Source: European Centre for Disease Prevention ;'),
         html.A(' Data',
                href='https://github.com/datadista/datasets/raw/master/COVID%2019/',
-               target='_blank'), 
+               target='_blank'),
     ]),
 ])#Container world
 
@@ -394,7 +402,7 @@ spain = dbc.Container([
         ],
             md = 2,
         ),#Col1
-        
+
         #=====================================================================#
         #=== Col2
         dbc.Col([
@@ -447,7 +455,7 @@ spain = dbc.Container([
         ],
             md = 2,
         ),#Col1
-        
+
         #=====================================================================#
         #=== Col2
         dbc.Col([
@@ -458,7 +466,7 @@ spain = dbc.Container([
     ],
         align = 'center',
     ),#Row3
-    
+
     #=========================================================================#
     #=== Row 4
     dbc.Row([
@@ -478,7 +486,7 @@ spain = dbc.Container([
         dbc.Label('Source: Datadista.com ;'),
         html.A(' Data',
                href='https://github.com/datadista/datasets/raw/master/COVID%2019/',
-               target='_blank'), 
+               target='_blank'),
     ]),
 ])#Container Spain
 
@@ -529,13 +537,13 @@ def toggle_active_links(pathname):
 @app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])
 def render_page_content(pathname):
     if pathname in ['/', '/page-1']:
-        
+
         return world
     elif pathname == '/page-2':
-                
+
         return spain
     elif pathname == '/page-3':
-        
+
         return cyprus
     # If the user tries to reach a different page, return a 404 message
     return dbc.Jumbotron(
@@ -551,19 +559,19 @@ def render_page_content(pathname):
 
 #=============================================================================#
 # ========== Dropdown Country list ==========
-    
+
 @app.callback(Output('Selected_Countries', 'options'),
              [Input('Data_to_show', 'value')])
 def callback_country_list(Data_to_show_value):
     return [{'label':i,'value':i} for i in df.country.unique()]
-    
+
 #=============================================================================#
 # ========== Country Selector ==========
 
 @app.callback(Output('Selected_Countries', 'value'),
              [Input('country_set', 'value')])
 def callback_country_set(country_set_value):
-    
+
     if country_set_value == '!':
         country_list = df.query("country == ['Cyprus','France','Guatemala','Italy',"+\
              "'Netherlands','Spain','Sweden','UK']").country.unique().tolist()
@@ -586,7 +594,7 @@ def callback_country_set(country_set_value):
     if country_set_value == 'Oceania':
         country_list = df.query("continentExp == 'Oceania'").country.unique().tolist()
         return country_list
-    
+
     return country_list
 
 #=============================================================================#
@@ -600,7 +608,7 @@ def callback_country_set(country_set_value):
 def callback_Line_Graph(Selected_Countries_value,
                         yaxis_scale_value,
                         Data_to_show_value):
-    
+
     fig = px.line(
         df_line_data.query("country == "+str(Selected_Countries_value)),
         x = 'day',
@@ -621,7 +629,7 @@ def callback_Line_Graph(Selected_Countries_value,
     fig.update_layout(
         template = 'plotly_white',
     )
-    
+
     return fig
 
 #=============================================================================#
@@ -631,12 +639,12 @@ def callback_Line_Graph(Selected_Countries_value,
              [Input('Map_Data_to_show', 'value'),
              Input('boolean_switch', 'on')])
 def callback_Map(Map_Data_to_show_value,boolean_switch_on):
-    
+
     df_geo_o = df_geo
-    
+
     if not boolean_switch_on:
         df_geo_o = df_geo.loc[df_geo.groupby('country').cases.idxmax()]
-    
+
     fig = px.scatter_geo(
         df_geo_o,
         locations = 'iso_alpha',
@@ -647,12 +655,12 @@ def callback_Map(Map_Data_to_show_value,boolean_switch_on):
         animation_frame = 'day' if boolean_switch_on else None,
         projection = 'natural earth',
     )
-    
+
     fig.update_layout(
         margin = dict(t = 0, l = 0, r = 0, b = 0),
         template = 'plotly_white',
     )
-    
+
     fig.update_geos(fitbounds='locations',showcountries = True)
 
     return fig
@@ -663,19 +671,19 @@ def callback_Map(Map_Data_to_show_value,boolean_switch_on):
 
 #=============================================================================#
 # ========== Dropdown Region list ==========
-    
+
 @app.callback(Output('Selected_Regions', 'options'),
              [Input('Spain_Data_to_show', 'value')])
 def callback_region_list(Spain_Data_to_show):
     return [{'label':i,'value':i} for i in df_spain.Region_Name.unique()]
-    
+
 #=============================================================================#
 # ========== Region Selector ==========
 
 @app.callback(Output('Selected_Regions', 'value'),
              [Input('region_set', 'value')])
 def callback_region_set(region_set_value):
-    
+
     if region_set_value == 'Spain':
         region_list = df_spain.query("Cases > -1").Region_Name.unique().tolist()
         return region_list
@@ -686,7 +694,7 @@ def callback_region_set(region_set_value):
         region_list = df_spain.query("Region_Name == 'Catalonia'").Region_Name.unique().tolist()
         return region_list
 
-    
+
     return region_list
 
 #=============================================================================#
@@ -700,7 +708,7 @@ def callback_region_set(region_set_value):
 def callback_Spain_Line_Graph(Selected_Regions_value,
                               yaxis_scale_s_value,
                               Spain_Data_to_show_value):
-    
+
     fig = px.line(
         df_spain_line_data.query("Region_Name == "+str(Selected_Regions_value)),
         x = 'Date',
@@ -716,11 +724,11 @@ def callback_Spain_Line_Graph(Selected_Regions_value,
         render_mode = 'svg',
         log_y = yaxis_scale_s_value
     )
-    
+
     fig.update_layout(
         template = 'plotly_white',
-    )   
-    
+    )
+
     return fig
 
 #=============================================================================#
@@ -731,16 +739,16 @@ def callback_Spain_Line_Graph(Selected_Regions_value,
              Input('boolean_switch_spain', 'on')])
 def callback_Spain_Map(Spain_Map_Data_to_show_value,
                       boolean_switch_spain_on):
-    
+
     df_geo_spain_o = df_geo_spain
-    
+
     if not boolean_switch_spain_on:
         df_geo_spain_o = df_geo_spain.loc[df_geo_spain.groupby('Region_Name')\
                                                     .Cases.idxmax()]
-    
+
     fig = px.scatter_geo(
         df_geo_spain_o,
-        lat = 'Lat', 
+        lat = 'Lat',
         lon = 'Long',
         color = 'Region_Name',
         hover_name = 'Region_Name',

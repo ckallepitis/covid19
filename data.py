@@ -13,8 +13,8 @@ import requests
 #=============================================================================#
 # ========== Load Covid19 data ==========
 
-def get_covid_data():
-    url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'
+def get_covid_data(url):
+    #url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'
     s = requests.get(url).content
     df = pd.read_csv(io.StringIO(s.decode('utf-8')))
     df.rename(columns = {'countriesAndTerritories': 'country'}, inplace = True)
@@ -27,18 +27,18 @@ def get_covid_data():
                               'Wallis_and_Futuna'])]
     df = df[['dateRep','day','month','year','cases','deaths',
          'country', 'geoId','countryterritoryCode','continentExp','popData2019']]
-    
+
     return df
 
 #=============================================================================#
 # ========== Line Graph ==========
 
 def get_line_graph_data(df):
-    
+
     df_line_data = df[['dateRep', 'cases', 'deaths', 'country','continentExp', 'popData2019']]
     df_line_data = df_line_data.rename(columns = {'dateRep': 'day', 'continentExp': 'continent'}, inplace = False)
     df_line_data = df_line_data.groupby(['continent','country','day']).sum()
-    
+
     df_line_data['daily_cases'] = df_line_data['cases']
     df_line_data['daily_deaths'] = df_line_data['deaths']
     df_line_data['cases'] = df_line_data.groupby(['country']).cumsum().cases
@@ -60,13 +60,13 @@ def get_bar_plot_data(df):
     # Cases
     df_bar_cases = df_bar_data[['cases','country']]
     df_bar_cases = df_bar_cases.sort_values('cases', ascending = False).iloc[:11,:].reset_index(drop=True)
-    df_bar_cases['cat'] = 'cases' 
+    df_bar_cases['cat'] = 'cases'
 
     # Cases per million pop
     df_bar_cases_per_mill = pd.DataFrame(df_bar_data['country'])
     df_bar_cases_per_mill['cases_per_mill'] = ((df_bar_data['cases'] * 1e6) /\
                                       df_bar_data['popData2019']).astype(int)
-    df_bar_cases_per_mill['cat'] = 'cases_per_mill' 
+    df_bar_cases_per_mill['cat'] = 'cases_per_mill'
 
     df_bar_cases_per_mill = df_bar_cases_per_mill\
     .sort_values('cases_per_mill', ascending = False).iloc[:11,:].reset_index(drop=True)
@@ -80,17 +80,17 @@ def get_bar_plot_data(df):
     df_bar_deaths_per_mill = pd.DataFrame(df_bar_data['country'])
     df_bar_deaths_per_mill['deaths_per_mill'] = ((df_bar_data['deaths'] * 1e6) /\
                                       df_bar_data['popData2019']).astype(int)
-    df_bar_deaths_per_mill['cat'] = 'deaths_per_mill' 
+    df_bar_deaths_per_mill['cat'] = 'deaths_per_mill'
 
     df_bar_deaths_per_mill = df_bar_deaths_per_mill\
     .sort_values('deaths_per_mill', ascending = False).iloc[:11,:].reset_index(drop=True)
-    
+
     # Create subplots data
     cols = ['cases','deaths','cases_per_mill','deaths_per_mill']
     df_bar = pd.concat([df_bar_cases,df_bar_deaths,df_bar_cases_per_mill,df_bar_deaths_per_mill],axis=0)
     df_bar = df_bar.assign(values=df_bar[cols].sum(1)).drop(cols, 1).reset_index(drop=True)
 
-    
+
     return df_bar
 
 #=============================================================================#
@@ -103,35 +103,35 @@ def get_geo_data(df):
     df_geo.columns = ['day','cases','deaths','country','iso_alpha','continent']
     df_geo['day'] = pd.to_datetime(df_geo['day'], format = '%Y-%m-%d')
     df_geo = df_geo.sort_values(['day','country']).reset_index(drop = True)
-    
+
     df_geo['daily_cases'] = df_geo[['country', 'day','cases']]\
     .groupby(['country', 'day']).sum()\
     .reset_index()\
     .sort_values(['day','country'])\
     .reset_index(drop = True).cases
-    
+
     df_geo['cases'] = df_geo[['country', 'day','cases']]\
     .groupby(['country', 'day']).sum()\
     .groupby(level = 0).cumsum().reset_index()\
     .sort_values(['day','country'])\
     .reset_index(drop = True).cases
-    
+
     df_geo['daily_deaths'] = df_geo[['country', 'day','deaths']]\
     .groupby(['country', 'day']).sum()\
     .reset_index()\
     .sort_values(['day','country'])\
     .reset_index(drop = True).deaths
-    
+
     df_geo['deaths'] = df_geo[['country', 'day','deaths']]\
     .groupby(['country', 'day']).sum()\
     .groupby(level = 0).cumsum().reset_index()\
     .sort_values(['day','country'])\
     .reset_index(drop = True).deaths
-    
+
     df_geo.daily_cases[df_geo.daily_cases < 0] = 0
     df_geo.daily_deaths[df_geo.daily_deaths < 0] = 0
     df_geo.day = df_geo.day.dt.strftime("%b %d").astype(str)
-    
+
     return df_geo
 
 #=============================================================================#
@@ -144,9 +144,9 @@ def get_geo_data(df):
 # ========== Load Covid19 data ==========
 
 def get_covid_data_Spain():
-    
+
     #urls = 'https://covid19.isciii.es/resources/serie_historica_acumulados.csv'
-    
+
     url_cases = 'https://github.com/datadista/datasets/raw/master/COVID%2019/'+\
                 'ccaa_covid19_datos_isciii_nueva_serie.csv'
 
@@ -175,7 +175,7 @@ def get_covid_data_Spain():
                         'Hospital_Beds', 'ICU', 'ICU_Beds', 'Hospitalised_24h',
                         'Recovered_24h']
 
-    df_spain = df_spain.replace({'Region_Name': 
+    df_spain = df_spain.replace({'Region_Name':
                                  {'Andalucía':'Andalusia',
                                   'Aragón':'Aragon',
                                   'Baleares':'Balearic Islands',
@@ -189,7 +189,7 @@ def get_covid_data_Spain():
     df_spain = df_spain.query('Region_Name != ["Ceuta","Melilla"]')
     #df_spain['Recovered'] = df_spain['Cases'] - (df_spain['Deaths'] + df_spain['Hospitalised'] + df_spain['ICU'] )
     df_spain.Date = pd.to_datetime(df_spain.Date, format = '%Y/%m/%d')
-    
+
     df_spain['Daily_Cases'] = df_spain['Cases']
     df_spain['Daily_Deaths'] = df_spain['Deaths']
     df_spain['Cases'] = df_spain.groupby(['Region_Name']).cumsum().Cases
@@ -199,7 +199,7 @@ def get_covid_data_Spain():
     df_loc = pd.DataFrame(SPAIN_GEOLOCATIONS)
 
     df_spain = pd.merge(df_spain, df_loc, how='inner', on='Region_Name')
-    
+
     return df_spain
 
 #=============================================================================#
@@ -210,11 +210,11 @@ def get_covid_data_Spain():
 # ========== Spain Map ==========
 
 def get_geo_Spain_data(df_spain):
-    
+
     df_geo_spain = df_spain[['Date','Region_Name','Long','Lat','Cases','Daily_Cases','Deaths','Daily_Deaths']].fillna(0)
     df_geo_spain = df_geo_spain.sort_values('Date')
     df_geo_spain.Date = df_geo_spain.Date.dt.strftime("%b %d").astype(str)
-    
+
     return df_geo_spain
 #=============================================================================#
 # ========== Sunburst chart ==========
@@ -241,7 +241,7 @@ def get_sunburst_data(df_spain):
     df_sunburst['Cases'] = 'Active Cases'
     df_sunburst[(df_sunburst.variable == 'Deaths') | (df_sunburst.variable == 'Recovered')] = \
     df_sunburst.query("variable == ['Deaths','Recovered']").replace('Active Cases','Closed Cases')
-    
+
     return df_sunburst
 
 #=============================================================================#
