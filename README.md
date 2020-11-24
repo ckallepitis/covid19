@@ -15,14 +15,14 @@ Spain has been given extra focus.
 
 The following are screenshots for the app in this repo:
 
-![screenshot](screenshots/worldwide.png)
+![screenshot](screenshots/world.png)
 
-![screenshot](screenshots/dailydeaths.png)
+![screenshot](screenshots/deaths.png)
 
 ![screenshot](screenshots/worldmap.png)
 
 ![screenshot](screenshots/spain.png)
 
-![screenshot](screenshots/sunburstandmap.png)
+![screenshot](screenshots/spain_map.png)
 
 ![screenshot](screenshots/madrid.png)
