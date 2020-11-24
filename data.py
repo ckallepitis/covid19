@@ -13,8 +13,8 @@ import requests
 #=============================================================================#
 # ========== Load Covid19 data ==========
 
-def get_covid_data(url):
-    #url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'
+def get_covid_data():
+    url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'
     s = requests.get(url).content
     df = pd.read_csv(io.StringIO(s.decode('utf-8')))
     df.rename(columns = {'countriesAndTerritories': 'country'}, inplace = True)
