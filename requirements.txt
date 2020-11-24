@@ -1,3 +1,4 @@
+appdirs==1.4.4
 appnope==0.1.0
 argon2-cffi==20.1.0
 async-generator==1.10
@@ -19,7 +20,9 @@ dash-renderer==1.8.3
 dash-table==4.11.0
 decorator==4.4.2
 defusedxml==0.6.0
+distlib==0.3.1
 entrypoints==0.3
+filelock==3.0.12
 Flask==1.1.2
 Flask-Compress==1.8.0
 future==0.18.2
@@ -54,6 +57,7 @@ parso==0.7.1
 pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==8.0.1
+pipenv==2020.11.15
 plotly==4.12.0
 prometheus-client==0.8.0
 prompt-toolkit==3.0.8
@@ -76,6 +80,8 @@ testpath==0.4.4
 tornado==6.0.4
 traitlets==5.0.5
 urllib3==1.25.11
+virtualenv==20.2.1
+virtualenv-clone==0.5.4
 wcwidth==0.2.5
 webencodings==0.5.1
 Werkzeug==1.0.1
