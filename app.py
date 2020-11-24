@@ -23,10 +23,10 @@ from data import get_covid_data, get_line_graph_data
 from data import get_bar_plot_data, get_geo_data
 from data import get_covid_data_Spain, get_geo_Spain_data, get_sunburst_data
 
-from rq import Queue
-from worker import conn
+#from rq import Queue
+#from worker import conn
 
-q = Queue(connection=conn)
+#q = Queue(connection=conn)
 
 # Launch the application:
 app = dash.Dash(external_stylesheets=[dbc.themes.CERULEAN])
@@ -34,15 +34,14 @@ app.config.suppress_callback_exceptions = True
 server = app.server
 
 # World Data
-df = q.enqueue(get_covid_data,
- 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv')
-#df = get_covid_data()
+#df = q.enqueue(get_covid_data,
+# 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv')
+df = get_covid_data()
 df_line_data = get_line_graph_data(df)
 df_geo = get_geo_data(df)
 df_bar = get_bar_plot_data(df)
 
 # Spain Data
-#df_spain = q.enqueue(get_covid_data_Spain, 'http://heroku.com')
 df_spain = get_covid_data_Spain()
 df_spain_line_data = df_spain[['Date', 'Cases', 'Daily_Cases', 'Deaths',
                                'Daily_Deaths', 'Region', 'Region_Name']]
