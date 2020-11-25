@@ -131,7 +131,7 @@ sidebar = html.Div(
         'top': 0,
         'left': 0,
         'bottom': 0,
-        'width': '20rem',
+        'width': '20%',
         'padding': '2rem 1rem',
         'background-color': '#f8f9fa',
     },
@@ -140,7 +140,7 @@ sidebar = html.Div(
 content = html.Div(
     id='page-content',
     style={
-        'margin-left': '10rem',
+        'margin-left': '25%',
     }
 )
 
@@ -776,4 +776,4 @@ def callback_Spain_Map(Spain_Map_Data_to_show_value,
 #=============================================================================#
 
 if __name__ == '__main__':
-    app.run_server(debug = True)
+    app.run_server()
