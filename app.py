@@ -111,7 +111,8 @@ fig_sunburst = px.sunburst(df_sunburst,
 
 sidebar = html.Div(
     [
-        html.H2('Covid-19 Dashboard', className='display-4'),
+        html.Div('Covid-19 Dashboard',
+        style={'color':'#2fa4e7', 'fontSize':'4vw'}),
         html.Hr(),
         html.P(
             'Data following the Covid-19 pandemic', className='lead'
