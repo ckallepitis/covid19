@@ -43,8 +43,10 @@ df_bar = get_bar_plot_data(df)
 
 # Spain Data
 df_spain = get_covid_data_Spain()
-df_spain_line_data = df_spain[['Date', 'Cases', 'Daily_Cases', 'Deaths',
-                               'Daily_Deaths', 'Region', 'Region_Name']]
+df_spain_line_data = df_spain[['Date', 'Cases',
+                               'Daily Cases; 7-day rolling average', 'Deaths',
+                               'Daily Deaths; 7-day rolling average', 'Region',
+                               'Region_Name']]
 df_geo_spain = get_geo_Spain_data(df_spain)
 df_sunburst = get_sunburst_data(df_spain)
 
@@ -212,11 +214,14 @@ world = dbc.Container([
                         id = 'Data_to_show',
                         options =[
                             {'label': 'Confirmed','value': 'cases'},
-                            {'label': 'Daily Confirmed','value': 'daily_cases'},
-                            {'label': 'Deaths','value': 'deaths'},
-                            {'label': 'Daily Deaths','value': 'daily_deaths'},
+                            {'label': 'Daily Confirmed',
+                             'value': 'daily cases; 7-day rolling average'},
+                            {'label': 'Deaths',
+                             'value': 'deaths'},
+                            {'label': 'Daily Deaths',
+                            'value': 'daily deaths; 7-day rolling average'},
                         ],
-                        value = 'daily_cases',
+                        value = 'daily cases; 7-day rolling average',
                     ),#RadioItems
                 ]),#FormGroup
             ],
@@ -318,8 +323,8 @@ world = dbc.Container([
     dbc.Row([
         dbc.Label('Source: European Centre for Disease Prevention ;'),
         html.A(' Data',
-               href='https://github.com/datadista/datasets/raw/master/COVID%2019/',
-               target='_blank'),
+            href='https://github.com/datadista/datasets/raw/master/COVID%2019/',
+            target='_blank'),
     ]),
 ])#Container world
 
@@ -386,11 +391,13 @@ spain = dbc.Container([
                         id = 'Spain_Data_to_show',
                         options =[
                             {'label': 'Confirmed','value': 'Cases'},
-                            {'label': 'Daily Confirmed','value': 'Daily_Cases'},
+                            {'label': 'Daily Confirmed',
+                             'value': 'Daily Cases; 7-day rolling average'},
                             {'label': 'Deaths','value': 'Deaths'},
-                            {'label': 'Daily Deaths','value': 'Daily_Deaths'},
+                            {'label': 'Daily Deaths',
+                             'value': 'Daily Deaths; 7-day rolling average'},
                         ],
-                        value = 'Daily_Cases',
+                        value = 'Daily Cases; 7-day rolling average',
                     ),#RadioItems
                 ]),#FormGroup
             ],
@@ -614,20 +621,14 @@ def callback_Line_Graph(Selected_Countries_value,
         x = 'day',
         y = Data_to_show_value,
         color = 'continent' if Selected_Countries_value == "popData2019 > 0" else 'country',
-        line_group = 'country',
-        hover_name = 'country',
-        hover_data = {
-            'continent':False,
-            'country':False,
-            #'day':False,
-        },
-        line_shape = 'spline',
-        render_mode = 'svg',
         log_y = yaxis_scale_value
     )
 
+    fig.update_traces(hovertemplate=None)
+
     fig.update_layout(
         template = 'plotly_white',
+        hovermode='x',
     )
 
     return fig
@@ -651,7 +652,6 @@ def callback_Map(Map_Data_to_show_value,boolean_switch_on):
         color = 'continent',
         hover_name = 'country',
         size = Map_Data_to_show_value,
-        #size_max = 50,
         animation_frame = 'day' if boolean_switch_on else None,
         projection = 'natural earth',
     )
@@ -662,6 +662,9 @@ def callback_Map(Map_Data_to_show_value,boolean_switch_on):
     )
 
     fig.update_geos(fitbounds='locations',showcountries = True)
+
+    if boolean_switch_on:
+        fig.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 10
 
     return fig
 
@@ -714,19 +717,14 @@ def callback_Spain_Line_Graph(Selected_Regions_value,
         x = 'Date',
         y = Spain_Data_to_show_value,
         color = 'Region_Name',
-        line_group = 'Region_Name',
-        hover_name = 'Region_Name',
-        hover_data = {
-            'Region_Name':False,
-            'Date':False,
-        },
-        line_shape = 'spline',
-        render_mode = 'svg',
         log_y = yaxis_scale_s_value
     )
 
+    fig.update_traces(hovertemplate=None)
+
     fig.update_layout(
         template = 'plotly_white',
+        hovermode='x',
     )
 
     return fig
@@ -759,7 +757,6 @@ def callback_Spain_Map(Spain_Map_Data_to_show_value,
             'Long':False,
         },
         size = Spain_Map_Data_to_show_value,
-        size_max = 50,
         animation_frame = 'Date' if boolean_switch_spain_on else None,
         projection = 'natural earth',
     )
@@ -770,6 +767,9 @@ def callback_Spain_Map(Spain_Map_Data_to_show_value,
     )
 
     fig.update_geos(fitbounds='locations',showcountries = True)
+
+    if boolean_switch_spain_on:
+        fig.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 10
 
     return fig
 

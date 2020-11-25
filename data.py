@@ -25,8 +25,8 @@ def get_covid_data():
     df['dateRep'] = pd.to_datetime(df['dateRep'], format = '%d/%m/%Y').dt.date
     df = df[~df.country.isin(['Cases_on_an_international_conveyance_Japan',
                               'Wallis_and_Futuna'])]
-    df = df[['dateRep','day','month','year','cases','deaths',
-         'country', 'geoId','countryterritoryCode','continentExp','popData2019']]
+    df = df[['dateRep','day','month','year','cases','deaths','country','geoId',
+             'countryterritoryCode','continentExp','popData2019']]
 
     return df
 
@@ -35,12 +35,17 @@ def get_covid_data():
 
 def get_line_graph_data(df):
 
-    df_line_data = df[['dateRep', 'cases', 'deaths', 'country','continentExp', 'popData2019']]
-    df_line_data = df_line_data.rename(columns = {'dateRep': 'day', 'continentExp': 'continent'}, inplace = False)
+    df_line_data = df[['dateRep','cases','deaths','country',
+                       'continentExp','popData2019']]
+    df_line_data = df_line_data.rename(columns = {'dateRep': 'day',
+                                                  'continentExp': 'continent'},
+                                       inplace = False)
     df_line_data = df_line_data.groupby(['continent','country','day']).sum()
 
     df_line_data['daily_cases'] = df_line_data['cases']
+    df_line_data['daily cases; 7-day rolling average'] = df_line_data.daily_cases.rolling(window=7).mean()
     df_line_data['daily_deaths'] = df_line_data['deaths']
+    df_line_data['daily deaths; 7-day rolling average'] = df_line_data.daily_deaths.rolling(window=7).mean()
     df_line_data['cases'] = df_line_data.groupby(['country']).cumsum().cases
     df_line_data['deaths'] = df_line_data.groupby(['country']).cumsum().deaths
 
@@ -57,36 +62,38 @@ def get_bar_plot_data(df):
     df_bar_data = df[['cases','deaths','country','popData2019']]\
     .groupby('country').agg({'cases':'sum','deaths':'sum','popData2019':'first'}).reset_index()
 
+    top = 15
+
     # Cases
     df_bar_cases = df_bar_data[['cases','country']]
-    df_bar_cases = df_bar_cases.sort_values('cases', ascending = False).iloc[:11,:].reset_index(drop=True)
+    df_bar_cases = df_bar_cases.sort_values('cases', ascending = False).iloc[:top,:].reset_index(drop=True)
     df_bar_cases['cat'] = 'cases'
 
     # Cases per million pop
     df_bar_cases_per_mill = pd.DataFrame(df_bar_data['country'])
-    df_bar_cases_per_mill['cases_per_mill'] = ((df_bar_data['cases'] * 1e6) /\
+    df_bar_cases_per_mill['cases per million people'] = ((df_bar_data['cases'] * 1e6) /\
                                       df_bar_data['popData2019']).astype(int)
-    df_bar_cases_per_mill['cat'] = 'cases_per_mill'
+    df_bar_cases_per_mill['cat'] = 'cases per million people'
 
     df_bar_cases_per_mill = df_bar_cases_per_mill\
-    .sort_values('cases_per_mill', ascending = False).iloc[:11,:].reset_index(drop=True)
+    .sort_values('cases per million people', ascending = False).iloc[:top,:].reset_index(drop=True)
 
     # Deaths
     df_bar_deaths = df_bar_data[['deaths','country']]
-    df_bar_deaths = df_bar_deaths.sort_values('deaths', ascending = False).iloc[:11,:].reset_index(drop=True)
+    df_bar_deaths = df_bar_deaths.sort_values('deaths', ascending = False).iloc[:top,:].reset_index(drop=True)
     df_bar_deaths['cat'] = 'deaths'
 
     # Cases per million pop
     df_bar_deaths_per_mill = pd.DataFrame(df_bar_data['country'])
-    df_bar_deaths_per_mill['deaths_per_mill'] = ((df_bar_data['deaths'] * 1e6) /\
+    df_bar_deaths_per_mill['deaths per million people'] = ((df_bar_data['deaths'] * 1e6) /\
                                       df_bar_data['popData2019']).astype(int)
-    df_bar_deaths_per_mill['cat'] = 'deaths_per_mill'
+    df_bar_deaths_per_mill['cat'] = 'deaths per million people'
 
     df_bar_deaths_per_mill = df_bar_deaths_per_mill\
-    .sort_values('deaths_per_mill', ascending = False).iloc[:11,:].reset_index(drop=True)
+    .sort_values('deaths per million people', ascending = False).iloc[:top,:].reset_index(drop=True)
 
     # Create subplots data
-    cols = ['cases','deaths','cases_per_mill','deaths_per_mill']
+    cols = ['cases','deaths','cases per million people','deaths per million people']
     df_bar = pd.concat([df_bar_cases,df_bar_deaths,df_bar_cases_per_mill,df_bar_deaths_per_mill],axis=0)
     df_bar = df_bar.assign(values=df_bar[cols].sum(1)).drop(cols, 1).reset_index(drop=True)
 
@@ -184,6 +191,7 @@ def get_covid_data_Spain():
                                   'Castilla La Mancha':'Castille-La Mancha',
                                   'Castilla y León':'Castille and Leon',
                                   'Cataluña':'Catalonia',
+                                  'Navarra':'Navarre',
                                   'País Vasco':'Basque Country'}})
 
     df_spain = df_spain.query('Region_Name != ["Ceuta","Melilla"]')
@@ -191,7 +199,9 @@ def get_covid_data_Spain():
     df_spain.Date = pd.to_datetime(df_spain.Date, format = '%Y/%m/%d')
 
     df_spain['Daily_Cases'] = df_spain['Cases']
+    df_spain['Daily Cases; 7-day rolling average'] = df_spain.Daily_Cases.rolling(window=7).mean()
     df_spain['Daily_Deaths'] = df_spain['Deaths']
+    df_spain['Daily Deaths; 7-day rolling average'] = df_spain.Daily_Deaths.rolling(window=7).mean()
     df_spain['Cases'] = df_spain.groupby(['Region_Name']).cumsum().Cases
     df_spain['Deaths'] = df_spain.groupby(['Region_Name']).cumsum().Deaths
 
