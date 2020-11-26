@@ -41,16 +41,20 @@ def get_line_graph_data(df):
                                                   'continentExp': 'continent'},
                                        inplace = False)
     df_line_data = df_line_data.groupby(['continent','country','day']).sum()
+    df_line_data = df_line_data.reset_index()
 
     df_line_data['daily_cases'] = df_line_data['cases']
-    df_line_data['daily cases; 7-day rolling average'] = df_line_data.daily_cases.rolling(window=7).mean()
     df_line_data['daily_deaths'] = df_line_data['deaths']
-    df_line_data['daily deaths; 7-day rolling average'] = df_line_data.daily_deaths.rolling(window=7).mean()
+    df_line_data.daily_cases[df_line_data.daily_cases < 0] = 0
+    df_line_data.daily_deaths[df_line_data.daily_deaths < 0] = 0
     df_line_data['cases'] = df_line_data.groupby(['country']).cumsum().cases
     df_line_data['deaths'] = df_line_data.groupby(['country']).cumsum().deaths
-
-    df_line_data = df_line_data.reset_index()
-    df_line_data[(df_line_data['daily_cases'] < 0)|(df_line_data['daily_deaths'] < 0)] = 0
+    df_line_data['daily deaths; 7-day rolling average'] = df_line_data.groupby(['country']).rolling(window=7)\
+                                                                      .daily_deaths.mean().reset_index()\
+                                                                      .set_index('level_1').daily_deaths
+    df_line_data['daily cases; 7-day rolling average'] = df_line_data.groupby(['country']).rolling(window=7)\
+                                                                     .daily_cases.mean().reset_index()\
+                                                                     .set_index('level_1').daily_cases
 
     return df_line_data
 
@@ -199,11 +203,18 @@ def get_covid_data_Spain():
     df_spain.Date = pd.to_datetime(df_spain.Date, format = '%Y/%m/%d')
 
     df_spain['Daily_Cases'] = df_spain['Cases']
-    df_spain['Daily Cases; 7-day rolling average'] = df_spain.Daily_Cases.rolling(window=7).mean()
     df_spain['Daily_Deaths'] = df_spain['Deaths']
-    df_spain['Daily Deaths; 7-day rolling average'] = df_spain.Daily_Deaths.rolling(window=7).mean()
+    df_spain.Daily_Cases[df_spain.Daily_Cases < 0] = 0
+    df_spain.Daily_Deaths[df_spain.Daily_Deaths < 0] = 0
     df_spain['Cases'] = df_spain.groupby(['Region_Name']).cumsum().Cases
     df_spain['Deaths'] = df_spain.groupby(['Region_Name']).cumsum().Deaths
+
+    df_spain['Daily Cases; 7-day rolling average'] = df_spain.groupby(['Region_Name']).rolling(window=7)\
+                                                                      .Daily_Cases.mean().reset_index()\
+                                                                      .set_index('level_1').Daily_Cases
+    df_spain['Daily Deaths; 7-day rolling average'] = df_spain.groupby(['Region_Name']).rolling(window=7)\
+                                                                     .Daily_Deaths.mean().reset_index()\
+                                                                     .set_index('level_1').Daily_Deaths
 
     from elements import SPAIN_GEOLOCATIONS
     df_loc = pd.DataFrame(SPAIN_GEOLOCATIONS)
