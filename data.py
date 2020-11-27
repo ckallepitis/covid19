@@ -215,6 +215,10 @@ def get_covid_data_Spain():
     df_spain['Daily Deaths; 7-day rolling average'] = df_spain.groupby(['Region_Name']).rolling(window=7)\
                                                                      .Daily_Deaths.mean().reset_index()\
                                                                      .set_index('level_1').Daily_Deaths
+    df_spain['Daily Cases; 7-day rolling average'] = df_spain['Daily Cases; 7-day rolling average']\
+                                                       .fillna(0).astype(np.int64, errors='ignore')
+    df_spain['Daily Deaths; 7-day rolling average'] = df_spain['Daily Deaths; 7-day rolling average']\
+                                                         .fillna(0).astype(np.int64, errors='ignore')
 
     from elements import SPAIN_GEOLOCATIONS
     df_loc = pd.DataFrame(SPAIN_GEOLOCATIONS)
@@ -232,8 +236,18 @@ def get_covid_data_Spain():
 
 def get_geo_Spain_data(df_spain):
 
-    df_geo_spain = df_spain[['Date','Region_Name','Long','Lat','Cases','Daily_Cases','Deaths','Daily_Deaths']].fillna(0)
-    df_geo_spain = df_geo_spain.sort_values('Date')
+    df_geo_spain = df_spain[['Date','Region_Name','Lat','Long','Cases','Deaths']]
+    df_geo_spain.loc[4433] = pd.Series({'Date':pd.to_datetime('2020-02-29 00:00:00'),
+                                    'Region_Name':'Cantabria',
+                                    'Lat':43.3333,'Long':-4,
+                                    'Cases':0,'Deaths':0})
+    df_geo_spain = df_geo_spain.set_index(['Date', 'Region_Name'])\
+    .unstack().transform(lambda v: v.ffill()).transform(lambda v: v.ffill())\
+    .transform(lambda v: v.bfill()).asfreq('D')\
+    .stack().sort_index(level=1).reset_index()
+    df_geo_spain = df_geo_spain.merge(df_spain[['Date','Region_Name',
+                             'Daily Cases; 7-day rolling average','Daily Deaths; 7-day rolling average']],
+                   how='left', on=['Date','Region_Name']).fillna(0)
     df_geo_spain.Date = df_geo_spain.Date.dt.strftime("%b %d").astype(str)
 
     return df_geo_spain
