@@ -249,6 +249,8 @@ def get_geo_Spain_data(df_spain):
                              'Daily Cases; 7-day rolling average','Daily Deaths; 7-day rolling average']],
                    how='left', on=['Date','Region_Name']).fillna(0)
     df_geo_spain.Date = df_geo_spain.Date.dt.strftime("%b %d").astype(str)
+    df_geo_spain = df_geo_spain.rename(columns={'Daily Cases; 7-day rolling average':'Daily Cases',
+                                                'Daily Deaths; 7-day rolling average':'Daily Deaths'})
 
     return df_geo_spain
 #=============================================================================#
