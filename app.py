@@ -45,8 +45,7 @@ df_bar = get_bar_plot_data(df)
 df_spain = get_covid_data_Spain()
 df_spain_line_data = df_spain[['Date', 'Cases',
                                'Daily Cases; 7-day rolling average', 'Deaths',
-                               'Daily Deaths; 7-day rolling average', 'Region',
-                               'Region']]
+                               'Daily Deaths; 7-day rolling average', 'Region']]
 df_geo_spain = get_geo_Spain_data(df_spain)
 df_sunburst = get_sunburst_data(df_spain)
 

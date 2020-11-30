@@ -58,7 +58,7 @@ COLOURS_SPAIN = [
 ]
 
 SPAIN_GEOLOCATIONS = {
-    'Region' :
+    'Region_ABBRV' :
     [
         'AN',
         'AR',
@@ -79,7 +79,7 @@ SPAIN_GEOLOCATIONS = {
         'VC',
     ],
 
-    'Region_Name' :
+    'Region' :
     [
         'Andalusia',
         'Aragon',

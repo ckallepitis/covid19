@@ -21,11 +21,11 @@ def get_covid_data():
     df.country = df.country.replace('United_States_of_America','USA')
     df.country = df.country.replace('United_Kingdom','UK')
     df.sort_values(['countryterritoryCode',
-                    'year','month','date']).reset_index(drop = True)
+                    'year','month','day']).reset_index(drop = True)
     df['dateRep'] = pd.to_datetime(df['dateRep'], format = '%d/%m/%Y').dt.date
     df = df[~df.country.isin(['Cases_on_an_international_conveyance_Japan',
                               'Wallis_and_Futuna'])]
-    df = df[['dateRep','date','month','year','cases','deaths','country','geoId',
+    df = df[['dateRep','day','month','year','cases','deaths','country','geoId',
              'countryterritoryCode','continentExp','popData2019']]
 
     return df
@@ -101,7 +101,6 @@ def get_bar_plot_data(df):
     df_bar = pd.concat([df_bar_cases,df_bar_deaths,df_bar_cases_per_mill,df_bar_deaths_per_mill],axis=0)
     df_bar = df_bar.assign(values=df_bar[cols].sum(1)).drop(cols, 1).reset_index(drop=True)
 
-
     return df_bar
 
 #=============================================================================#
@@ -109,7 +108,7 @@ def get_bar_plot_data(df):
 
 def get_geo_data(df):
 
-    df_geo = df[df.year != 2019].drop(['date','year','month','geoId','popData2019'], axis = 1)
+    df_geo = df[df.year != 2019].drop(['day','year','month','geoId','popData2019'], axis = 1)
     df_geo = df_geo.reset_index(drop = True)
     df_geo.columns = ['date','cases','deaths','country','iso_alpha','continent']
     df_geo['date'] = pd.to_datetime(df_geo['date'], format = '%Y-%m-%d')
@@ -233,8 +232,6 @@ def get_geo_Spain_data(df_spain):
     df_geo_spain.Date = df_geo_spain.Date.dt.strftime("%b %d").astype(str)
     df_geo_spain = df_geo_spain.rename(columns={'Daily Cases; 7-day rolling average':'Daily Cases',
                                                 'Daily Deaths; 7-day rolling average':'Daily Deaths'})
-    df_geo_spain = df_geo_spain.rename(columns = {'Region': 'Region Name',
-                                       inplace = False)
 
     return df_geo_spain
 #=============================================================================#
