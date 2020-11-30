@@ -46,7 +46,7 @@ df_spain = get_covid_data_Spain()
 df_spain_line_data = df_spain[['Date', 'Cases',
                                'Daily Cases; 7-day rolling average', 'Deaths',
                                'Daily Deaths; 7-day rolling average', 'Region',
-                               'Region_Name']]
+                               'Region']]
 df_geo_spain = get_geo_Spain_data(df_spain)
 df_sunburst = get_sunburst_data(df_spain)
 
@@ -98,7 +98,7 @@ fig_bar.update_layout(
 # ========== Sunburst plot ==========
 
 fig_sunburst = px.sunburst(df_sunburst,
-                           path=['Country','Region_Name','Cases','variable'],
+                           path=['Country','Region','Cases','variable'],
                            values='value')
 
 #=============================================================================#
@@ -620,7 +620,7 @@ def callback_Line_Graph(Selected_Countries_value,
 
     fig = px.line(
         df_line_data.query("country == "+str(Selected_Countries_value)),
-        x = 'day',
+        x = 'date',
         y = Data_to_show_value,
         color = 'continent' if Selected_Countries_value == "popData2019 > 0" else 'country',
         log_y = yaxis_scale_value
@@ -654,12 +654,12 @@ def callback_Map(Map_Data_to_show_value,boolean_switch_on):
         color = 'continent',
         hover_name = 'country',
         hover_data = {
-            'day':True,
+            'date':True,
             'iso_alpha':False,
             'continent':False,
         },
         size = Map_Data_to_show_value,
-        animation_frame = 'day' if boolean_switch_on else None,
+        animation_frame = 'date' if boolean_switch_on else None,
         projection = 'natural earth',
     )
 
@@ -685,7 +685,7 @@ def callback_Map(Map_Data_to_show_value,boolean_switch_on):
 @app.callback(Output('Selected_Regions', 'options'),
              [Input('Spain_Data_to_show', 'value')])
 def callback_region_list(Spain_Data_to_show):
-    return [{'label':i,'value':i} for i in df_spain.Region_Name.unique()]
+    return [{'label':i,'value':i} for i in df_spain.Region.unique()]
 
 #=============================================================================#
 # ========== Region Selector ==========
@@ -695,13 +695,13 @@ def callback_region_list(Spain_Data_to_show):
 def callback_region_set(region_set_value):
 
     if region_set_value == 'Spain':
-        region_list = df_spain.query("Cases > -1").Region_Name.unique().tolist()
+        region_list = df_spain.query("Cases > -1").Region.unique().tolist()
         return region_list
     if region_set_value == 'Madrid':
-        region_list = df_spain.query("Region_Name == 'Madrid'").Region_Name.unique().tolist()
+        region_list = df_spain.query("Region == 'Madrid'").Region.unique().tolist()
         return region_list
     if region_set_value == 'Catalonia':
-        region_list = df_spain.query("Region_Name == 'Catalonia'").Region_Name.unique().tolist()
+        region_list = df_spain.query("Region == 'Catalonia'").Region.unique().tolist()
         return region_list
 
 
@@ -720,10 +720,10 @@ def callback_Spain_Line_Graph(Selected_Regions_value,
                               Spain_Data_to_show_value):
 
     fig = px.line(
-        df_spain_line_data.query("Region_Name == "+str(Selected_Regions_value)),
+        df_spain_line_data.query("Region == "+str(Selected_Regions_value)),
         x = 'Date',
         y = Spain_Data_to_show_value,
-        color = 'Region_Name',
+        color = 'Region',
         log_y = yaxis_scale_s_value
     )
 
@@ -748,17 +748,17 @@ def callback_Spain_Map(Spain_Map_Data_to_show_value,
     df_geo_spain_o = df_geo_spain
 
     if not boolean_switch_spain_on:
-        df_geo_spain_o = df_geo_spain.loc[df_geo_spain.groupby('Region_Name')\
+        df_geo_spain_o = df_geo_spain.loc[df_geo_spain.groupby('Region')\
                                                     .Cases.idxmax()]
 
     fig = px.scatter_geo(
         df_geo_spain_o,
         lat = 'Lat',
         lon = 'Long',
-        color = 'Region_Name',
-        hover_name = 'Region_Name',
+        color = 'Region',
+        hover_name = 'Region',
         hover_data = {
-            'Region_Name':False,
+            'Region':False,
             'Date':True,
             'Lat':False,
             'Long':False,
