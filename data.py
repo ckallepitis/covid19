@@ -14,9 +14,12 @@ import requests
 # ========== Load Covid19 data ==========
 
 def get_covid_data():
-    url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'
+    url = 'https://www.ecdc.europa.eu/sites/default/files/documents/COVID-19-geographic-disbtribution-worldwide.xlsx'
     s = requests.get(url).content
-    df = pd.read_csv(io.StringIO(s.decode('utf-8')))
+    df = pd.read_excel(io.BytesIO(s),engine='openpyxl')
+    #url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'
+    #s = requests.get(url).content
+    #df = pd.read_csv(io.StringIO(s.decode('utf-8')))
     df.rename(columns = {'countriesAndTerritories': 'country'}, inplace = True)
     df.country = df.country.replace('United_States_of_America','USA')
     df.country = df.country.replace('United_Kingdom','UK')
@@ -55,6 +58,10 @@ def get_line_graph_data(df):
     df_line_data['daily cases; 7-day rolling average'] = df_line_data.groupby(['country']).rolling(window=7)\
                                                                      .daily_cases.mean().reset_index()\
                                                                      .set_index('level_1').daily_cases
+    df_line_data['daily cases; 7-day rolling average'] = df_line_data['daily cases; 7-day rolling average']\
+                                                       .fillna(0).astype(np.int64, errors='ignore')
+    df_line_data['daily deaths; 7-day rolling average'] = df_line_data['daily deaths; 7-day rolling average']\
+                                                         .fillna(0).astype(np.int64, errors='ignore')
 
     return df_line_data
 

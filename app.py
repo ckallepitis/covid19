@@ -322,7 +322,8 @@ world = dbc.Container([
     dbc.Row([
         dbc.Label('Source: European Centre for Disease Prevention ;'),
         html.A(' Data',
-            href='https://github.com/datadista/datasets/raw/master/COVID%2019/',
+            href='https://www.ecdc.europa.eu/en/publications-data/'+\
+        'download-todays-data-geographic-distribution-covid-19-cases-worldwide',
             target='_blank'),
     ]),
 ])#Container world
