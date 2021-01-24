@@ -583,25 +583,25 @@ def callback_country_set(country_set_value):
 
     if country_set_value == '!':
         country_list = df.query("country == ['Cyprus','France','Guatemala','Italy',"+\
-             "'Netherlands','Spain','Sweden','UK']").country.unique().tolist()
+             "'Netherlands','Spain','Sweden','United Kingdom']").country.unique().tolist()
         return country_list
     if country_set_value == 'World':
         country_list = df.query("popData2019 > 0").country.unique().tolist()
         return country_list
     if country_set_value == 'Africa':
-        country_list = df.query("continentExp == 'Africa'").country.unique().tolist()
+        country_list = df.query("continent == 'Africa'").country.unique().tolist()
         return country_list
     if country_set_value == 'America':
-        country_list = df.query("continentExp == 'America'").country.unique().tolist()
+        country_list = df.query("continent == 'America'").country.unique().tolist()
         return country_list
     if country_set_value == 'Asia':
-        country_list = df.query("continentExp == 'Asia'").country.unique().tolist()
+        country_list = df.query("continent == 'Asia'").country.unique().tolist()
         return country_list
     if country_set_value == 'Europe':
-        country_list = df.query("continentExp == 'Europe'").country.unique().tolist()
+        country_list = df.query("continent == 'Europe'").country.unique().tolist()
         return country_list
     if country_set_value == 'Oceania':
-        country_list = df.query("continentExp == 'Oceania'").country.unique().tolist()
+        country_list = df.query("continent == 'Oceania'").country.unique().tolist()
         return country_list
 
     return country_list
@@ -650,12 +650,12 @@ def callback_Map(Map_Data_to_show_value,boolean_switch_on):
 
     fig = px.scatter_geo(
         df_geo_o,
-        locations = 'iso_alpha',
+        locations = 'iso3',
         color = 'continent',
         hover_name = 'country',
         hover_data = {
             'date':True,
-            'iso_alpha':False,
+            'iso3':False,
             'continent':False,
         },
         size = Map_Data_to_show_value,

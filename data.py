@@ -14,22 +14,27 @@ import requests
 # ========== Load Covid19 data ==========
 
 def get_covid_data():
-    url = 'https://www.ecdc.europa.eu/sites/default/files/documents/COVID-19-geographic-disbtribution-worldwide.xlsx'
+    url = 'https://github.com/microsoft/Bing-COVID-19-Data/raw/master/data/Bing-COVID19-Data.csv'
     s = requests.get(url).content
-    df = pd.read_excel(io.BytesIO(s),engine='openpyxl')
-    #url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'
-    #s = requests.get(url).content
-    #df = pd.read_csv(io.StringIO(s.decode('utf-8')))
-    df.rename(columns = {'countriesAndTerritories': 'country'}, inplace = True)
-    df.country = df.country.replace('United_States_of_America','USA')
-    df.country = df.country.replace('United_Kingdom','UK')
-    df.sort_values(['countryterritoryCode',
-                    'year','month','day']).reset_index(drop = True)
-    df['dateRep'] = pd.to_datetime(df['dateRep'], format = '%d/%m/%Y').dt.date
-    df = df[~df.country.isin(['Cases_on_an_international_conveyance_Japan',
-                              'Wallis_and_Futuna'])]
-    df = df[['dateRep','day','month','year','cases','deaths','country','geoId',
-             'countryterritoryCode','continentExp','popData2019']]
+    df = pd.read_csv(io.StringIO(s.decode('utf-8')))
+    df = df.drop(['ID', 'ISO2'], axis=1)
+    df.columns = df.columns.str.lower()
+    df.rename(columns={
+        'updated': 'date',
+        'confirmed': 'cases',
+        'confirmedchange': 'daily_cases',
+        'deathschange': 'daily_deaths',
+        'recoveredchange': 'daily_recovered',
+        'country_region': 'country'
+    },
+              inplace=True)
+    df['date'] = pd.to_datetime(df['date'], format='%m/%d/%Y').dt.date
+    from elements import ADD_DATA
+    df = pd.merge(df, pd.DataFrame(ADD_DATA), on='iso3', how='left')
+    df = df[df.adminregion1.isna()]
+    c_list = df[(df.continent.isna()) | (df.popData2019.isna()) |
+                (df.iso3.isna())].country.unique()
+    df = df[~df.country.isin(c_list)].reset_index(drop=True)
 
     return df
 
@@ -38,20 +43,12 @@ def get_covid_data():
 
 def get_line_graph_data(df):
 
-    df_line_data = df[['dateRep','cases','deaths','country',
-                       'continentExp','popData2019']]
-    df_line_data = df_line_data.rename(columns = {'dateRep': 'date',
-                                                  'continentExp': 'continent'},
-                                       inplace = False)
-    df_line_data = df_line_data.groupby(['continent','country','date']).sum()
-    df_line_data = df_line_data.reset_index()
-
-    df_line_data['daily_cases'] = df_line_data['cases']
-    df_line_data['daily_deaths'] = df_line_data['deaths']
+    df_line_data = df[[
+        'date', 'cases', 'daily_cases', 'deaths', 'daily_deaths', 'country',
+        'continent', 'popData2019', 'iso3'
+    ]]
     df_line_data.daily_cases[df_line_data.daily_cases < 0] = 0
     df_line_data.daily_deaths[df_line_data.daily_deaths < 0] = 0
-    df_line_data['cases'] = df_line_data.groupby(['country']).cumsum().cases
-    df_line_data['deaths'] = df_line_data.groupby(['country']).cumsum().deaths
     df_line_data['daily deaths; 7-day rolling average'] = df_line_data.groupby(['country']).rolling(window=7)\
                                                                       .daily_deaths.mean().reset_index()\
                                                                       .set_index('level_1').daily_deaths
@@ -114,40 +111,20 @@ def get_bar_plot_data(df):
 # ========== Geo-plot ==========
 
 def get_geo_data(df):
-
-    df_geo = df[df.year != 2019].drop(['day','year','month','geoId','popData2019'], axis = 1)
-    df_geo = df_geo.reset_index(drop = True)
-    df_geo.columns = ['date','cases','deaths','country','iso_alpha','continent']
+    
+    df_geo = df[['date','continent','country','iso3','cases','daily_cases','deaths','daily_deaths']]
+    df_geo = df_geo[df_geo.country != 'South Sudan']
     df_geo['date'] = pd.to_datetime(df_geo['date'], format = '%Y-%m-%d')
     df_geo = df_geo.sort_values(['date','country']).reset_index(drop = True)
-
-    df_geo['daily_cases'] = df_geo[['country', 'date','cases']]\
-    .groupby(['country', 'date']).sum()\
-    .reset_index()\
-    .sort_values(['date','country'])\
-    .reset_index(drop = True).cases
-
-    df_geo['cases'] = df_geo[['country', 'date','cases']]\
-    .groupby(['country', 'date']).sum()\
-    .groupby(level = 0).cumsum().reset_index()\
-    .sort_values(['date','country'])\
-    .reset_index(drop = True).cases
-
-    df_geo['daily_deaths'] = df_geo[['country', 'date','deaths']]\
-    .groupby(['country', 'date']).sum()\
-    .reset_index()\
-    .sort_values(['date','country'])\
-    .reset_index(drop = True).deaths
-
-    df_geo['deaths'] = df_geo[['country', 'date','deaths']]\
-    .groupby(['country', 'date']).sum()\
-    .groupby(level = 0).cumsum().reset_index()\
-    .sort_values(['date','country'])\
-    .reset_index(drop = True).deaths
+    
+    df_geo = df_geo.set_index(['date', 'country'])\
+    .unstack().transform(lambda v: v.ffill()).transform(lambda v: v.ffill())\
+    .transform(lambda v: v.bfill()).asfreq('D')\
+    .stack().sort_index(level=1).reset_index()
 
     df_geo.daily_cases[df_geo.daily_cases < 0] = 0
     df_geo.daily_deaths[df_geo.daily_deaths < 0] = 0
-    df_geo.date = df_geo.date.dt.strftime("%b %d").astype(str)
+    df_geo.date = df_geo.date.dt.strftime("%d %b %y").astype(str)
 
     return df_geo
 
@@ -236,7 +213,7 @@ def get_geo_Spain_data(df_spain):
     df_geo_spain = df_geo_spain.merge(df_spain[['Date','Region',
                              'Daily Cases; 7-day rolling average','Daily Deaths; 7-day rolling average']],
                    how='left', on=['Date','Region']).fillna(0)
-    df_geo_spain.Date = df_geo_spain.Date.dt.strftime("%b %d").astype(str)
+    df_geo_spain.Date = df_geo_spain.Date.dt.strftime("%d %b %y").astype(str)
     df_geo_spain = df_geo_spain.rename(columns={'Daily Cases; 7-day rolling average':'Daily Cases',
                                                 'Daily Deaths; 7-day rolling average':'Daily Deaths'})
 
