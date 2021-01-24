@@ -320,10 +320,10 @@ world = dbc.Container([
     #=========================================================================#
     #=== Row 5
     dbc.Row([
-        dbc.Label('Source: European Centre for Disease Prevention ;'),
+        dbc.Label('Source: Microsoft, Bing ;'),
         html.A(' Data',
-            href='https://www.ecdc.europa.eu/en/publications-data/'+\
-        'download-todays-data-geographic-distribution-covid-19-cases-worldwide',
+            href='https://github.com/microsoft/Bing-COVID-19-Data/raw/master'+\
+                 '/data/Bing-COVID19-Data.csv',
             target='_blank'),
     ]),
 ])#Container world
